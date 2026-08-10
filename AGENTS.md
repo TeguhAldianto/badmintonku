@@ -7,3 +7,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# Repository Guide
+
+## Commands
+- **Dev Server**: `npm run dev`
+- **Build**: `npm run build`
+- **Lint**: `npm run lint`
+
+## Tech Stack & Architecture
+- **Framework**: Next.js 16.3 (App Router in `app/`)
+- **UI/Styling**: Tailwind CSS v4 (`@tailwindcss/postcss`) with React 19
+- **Language**: TypeScript (`tsconfig.json`)

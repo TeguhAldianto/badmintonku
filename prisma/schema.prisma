@@ -1,0 +1,147 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  WAITING_VERIFICATION
+  CONFIRMED
+  CANCELLED
+  REJECTED
+  EXPIRED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  UNPAID
+  VERIFYING
+  PAID
+  REJECTED
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   
+  name      String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Court {
+  id              Int               @id @default(autoincrement())
+  name            String            @unique 
+  description     String?
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  bookings        Booking[]
+  blockedSlots    BlockedSlot[]
+
+  @@map("courts")
+}
+
+model Booking {
+  id              String           @id @default(cuid())
+  courtId         Int
+  date            DateTime         @db.Date 
+  startTime       Int              
+  endTime         Int              
+  
+  userName        String
+  userPhone       String           
+  
+  status          BookingStatus    @default(PENDING_PAYMENT)
+  totalPrice      Decimal          @db.Decimal(10, 2)
+  expiresAt       DateTime         
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  court           Court            @relation(fields: [courtId], references: [id], onDelete: Restrict)
+  payment         Payment?
+  statusHistory   BookingStatusHistory[]
+
+  @@index([courtId, date])
+  @@index([userPhone])
+  @@map("bookings")
+}
+
+model Payment {
+  id              String           @id @default(cuid())
+  bookingId       String           @unique
+  amount          Decimal          @db.Decimal(10, 2)
+  proofUrl        String?          
+  status          PaymentStatus    @default(UNPAID)
+  rejectionReason String?          
+  verifiedAt      DateTime?        
+  method          String?          
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  booking         Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model BlockedSlot {
+  id          Int      @id @default(autoincrement())
+  courtId     Int
+  date        DateTime @db.Date
+  startTime   Int
+  endTime     Int
+  reason      String?  
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  court       Court    @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([courtId, date])
+  @@map("blocked_slots")
+}
+
+model BookingStatusHistory {
+  id          String         @id @default(cuid())
+  bookingId   String
+  oldStatus   BookingStatus?
+  newStatus   BookingStatus
+  changedBy   String         
+  notes       String?
+  
+  createdAt   DateTime       @default(now())
+
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("booking_status_history")
+}
+
+model NotificationLog {
+  id               Int      @id @default(autoincrement())
+  target           String
+  message          String   @db.Text
+  type             String
+  referenceId      String
+  status           String   // SENT, FAILED, ERROR
+  errorMessage     String?  @db.Text
+  providerResponse String?  @db.Text
+  retryCount       Int      @default(0)
+  createdAt        DateTime @default(now())
+
+  @@map("notification_logs")
+}
