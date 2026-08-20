@@ -1,0 +1,1 @@
+export default function ReportCharts() { return <div>Charts placeholder</div>; }

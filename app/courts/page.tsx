@@ -16,30 +16,38 @@ export default function CourtsPage() {
   };
 
   return (
-    <div className="container-app py-10">
-      <h1 className="text-3xl font-bold mb-8 text-center text-text">Pilih Tanggal Booking</h1>
-      <div className="max-w-md mx-auto">
-        <Card className="card-custom mb-6">
-          <CardContent className="p-4 flex justify-center">
+    <div className="container-app py-12 px-4 max-w-4xl mx-auto">
+      <div className="text-center mb-10">
+        <h1 className="text-4xl font-extrabold text-text mb-3">Pilih Tanggal</h1>
+        <p className="text-muted-foreground">Pilih jadwal main Anda untuk melihat ketersediaan lapangan.</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8 items-start">
+        <Card className="card-custom border-0 shadow-xl shadow-black/5 p-2">
+          <CardContent className="p-0">
             <Calendar
               mode="single"
               selected={date}
               onSelect={(d) => d && setDate(d)}
-              className="rounded-md border"
+              className="w-full"
               disabled={{ before: new Date() }}
             />
           </CardContent>
         </Card>
         
-        <div className="bg-primary/5 p-4 rounded-lg mb-6 border border-primary/20">
-          <p className="text-center font-medium text-text">
-            Anda memilih: <span className="font-bold text-primary">{formatDateIndo(date)}</span>
-          </p>
-        </div>
+        <div className="space-y-6">
+          <div className="bg-primary/10 border border-primary/20 rounded-2xl p-6 text-center">
+            <p className="text-sm font-medium text-primary mb-1 uppercase tracking-wider">Tanggal Terpilih</p>
+            <p className="text-2xl font-bold text-text">{formatDateIndo(date)}</p>
+          </div>
 
-        <Button onClick={handleNext} className="w-full btn-primary text-lg py-6">
-          Lanjut ke Pilih Lapangan
-        </Button>
+          <Button 
+            onClick={handleNext} 
+            className="w-full btn-primary text-base h-14 rounded-xl shadow-lg shadow-primary/30 hover:scale-[1.02] transition-transform"
+          >
+            Lihat Ketersediaan Lapangan
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -8,7 +8,15 @@ async function getDashboardStats() {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const [bookingsToday, totalBookings, pending, confirmed, completed, revenue, recentBookings] = await Promise.all([
+  const [
+    bookingsToday,
+    totalBookings,
+    pending,
+    confirmed,
+    completed,
+    revenue,
+    recentBookings,
+  ] = await Promise.all([
     prisma.booking.count({
       where: { date: { gte: today, lt: tomorrow } },
     }),

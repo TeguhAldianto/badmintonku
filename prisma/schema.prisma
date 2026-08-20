@@ -40,6 +40,23 @@ model Admin {
   @@map("admins")
 }
 
+model Blacklist {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@map("blacklists")
+}
+
+model Config {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("configs")
+}
+
 model Court {
   id              Int               @id @default(autoincrement())
   name            String            @unique 
@@ -90,11 +107,22 @@ model Payment {
   verifiedAt      DateTime?        
   method          String?          
   
+  // Midtrans fields
+  midtransTransactionId String?    @unique
+  midtransPaymentType   String?
+  midtransOrderId       String?
+  midtransFraudStatus   String?
+  midtransStatusCode    String?
+  midtransGrossAmount   Decimal?   @db.Decimal(10, 2)
+  midtransCurrency      String?    @default("IDR")
+  midtransRawResponse   String?    @db.Text
+  
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
   booking         Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
+  @@index([midtransTransactionId])
   @@map("payments")
 }
 

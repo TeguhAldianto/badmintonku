@@ -3,12 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-  }
+  try {
+    const session = await auth();
+    if (!session?.user || session.user.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
 
-  const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
   const search = searchParams.get("search");
   const status = searchParams.get("status");
 
@@ -22,11 +23,22 @@ export async function GET(request: Request) {
     ];
   }
 
-  const bookings = await prisma.booking.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: { court: true },
-  });
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const pageSize = parseInt(searchParams.get("pageSize") || "20", 10);
 
-  return NextResponse.json({ success: true, data: bookings });
+  const [bookings, total] = await prisma.$transaction([
+    prisma.booking.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      select: { id: true, status: true, totalPrice: true, userName: true, userPhone: true, date: true, startTime: true, endTime: true, court: { select: { name: true } } },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.booking.count({ where }),
+  ]);
+
+  return NextResponse.json({ success: true, data: bookings, meta: { total, page, pageSize } });
+} catch (error) {
+  return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+}
 }

@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 
 export default async function AdminSettingsPage() {
   const admin = await prisma.admin.findFirst();
+  const config = await prisma.config.findUnique({ where: { key: "operational_hours" } });
+  const hours = config ? JSON.parse(config.value) : { open: 8, close: 21 };
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -44,18 +46,18 @@ export default async function AdminSettingsPage() {
       <Card className="card-custom">
         <CardContent className="p-6">
           <h2 className="text-xl font-semibold mb-4">Jam Operasional</h2>
-          <form className="space-y-4 max-w-md">
+          <form className="space-y-4 max-w-md" action="/api/admin/settings" method="POST">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Buka</label>
-                <Input type="number" defaultValue="8" min="0" max="23" className="w-24" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Buka (Jam)</label>
+                <Input type="number" name="openHour" defaultValue={hours.open} min="0" max="23" className="w-24" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tutup</label>
-                <Input type="number" defaultValue="21" min="0" max="23" className="w-24" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tutup (Jam)</label>
+                <Input type="number" name="closeHour" defaultValue={hours.close} min="0" max="23" className="w-24" required />
               </div>
             </div>
-            <Button type="submit" className="btn-primary">Simpan Jam</Button>
+            <Button type="submit" className="btn-primary">Simpan Jam Operasional</Button>
           </form>
         </CardContent>
       </Card>

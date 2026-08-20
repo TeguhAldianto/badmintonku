@@ -8,8 +8,8 @@ import {
 describe("Availability Engine - Core Logic", () => {
   
   describe("generateOperatingSlots", () => {
-    test("generates slots from 08:00 to 21:00 in 1-hour increments", () => {
-      const slots = generateOperatingSlots();
+    test("generates slots from 08:00 to 21:00 in 1-hour increments", async () => {
+      const slots = await generateOperatingSlots();
       
       expect(slots).toHaveLength(13); // 8-9, 9-10, ..., 20-21 = 13 slots
       expect(slots[0]).toEqual({ startTime: 8, endTime: 9 });

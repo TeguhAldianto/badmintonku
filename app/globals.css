@@ -4,10 +4,15 @@
   --color-primary: #16A34A;
   --color-primary-dark: #15803D;
   --color-accent: #A3E635;
-  --color-background: #F8FAFC;
-  --color-text: #0F172A;
-  --color-background-alt: #FFFFFF;
-  --color-border: #E2E8F0;
+  --color-dark: #0B1220;
+  --color-background: #F5F7F5;
+  --color-surface: #FFFFFF;
+  --color-text: #101828;
+  --color-muted: #667085;
+  --color-border: #E4E7EC;
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
 }
 
 @layer base {
@@ -20,6 +25,7 @@
     background: var(--background);
     color: var(--foreground);
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -29,18 +35,18 @@
   }
   
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark transition-colors;
+    @apply bg-primary text-white font-medium hover:bg-primary-dark transition-all duration-200 shadow-sm active:scale-[0.98];
   }
   
-  .btn-secondary {
-    @apply bg-accent text-text hover:opacity-90 transition-opacity;
+  .btn-accent {
+    @apply bg-accent text-dark font-medium hover:opacity-90 transition-all duration-200 shadow-sm active:scale-[0.98];
   }
   
   .card-custom {
-    @apply bg-background-alt rounded-xl border border-border shadow-sm;
+    @apply bg-surface rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow duration-200;
   }
   
   .input-custom {
-    @apply w-full px-4 py-3 border border-border rounded-lg text-text placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow;
+    @apply w-full px-4 py-3 bg-surface border border-border rounded-xl text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
   }
 }

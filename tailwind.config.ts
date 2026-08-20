@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   content: [
@@ -14,10 +15,26 @@ export default {
           dark: "#15803D",
         },
         accent: "#A3E635",
-        background: "#F8FAFC",
-        text: "#0F172A",
+        dark: "#0B1220",
+        background: {
+          DEFAULT: "#F5F7F5",
+          surface: "#FFFFFF",
+        },
+        text: {
+          DEFAULT: "#101828",
+          muted: "#667085",
+        },
+        border: "#E4E7EC",
+        success: "#16A34A",
+        warning: "#F59E0B",
+        danger: "#EF4444",
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
     },
   },
-  plugins: [],
+  plugins: [tailwindcssAnimate],
 } satisfies Config;

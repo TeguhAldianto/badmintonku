@@ -6,17 +6,17 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="bg-background-alt border-b border-border sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-all">
         <div className="container-app flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold text-primary flex items-center gap-2">
-            <span className="text-2xl">🏸</span>
+          <Link href="/" className="text-xl font-extrabold text-primary flex items-center gap-2 tracking-tight">
+            <span className="text-2xl animate-bounce">🏸</span>
             BadmintonKu
           </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/courts" className="text-text hover:text-primary transition-colors font-medium">
+          <nav className="flex items-center gap-3 sm:gap-4">
+            <Link href="/courts" className="text-text hover:text-primary transition-colors text-sm font-medium hidden sm:block">
               Cari Lapangan
             </Link>
-            <Link href="/dashboard" className="btn-primary px-4 py-2 rounded-lg">
+            <Link href="/booking" className="btn-primary px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:shadow transition-all">
               Booking Sekarang
             </Link>
           </nav>
@@ -25,26 +25,28 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="py-20 lg:py-32 bg-gradient-to-b from-primary/5 via-background to-background">
-          <div className="container-app">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl lg:text-6xl font-bold text-text mb-6 leading-tight">
-                Booking Lapangan Badminton
-                <br />
-                <span className="text-primary">Mudah & Cepat</span>
+        <section className="py-20 lg:py-28 bg-gradient-to-b from-primary/10 via-primary/5 to-background relative overflow-hidden">
+          <div className="container-app relative z-10">
+            <div className="max-w-3xl mx-auto text-center space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide uppercase">
+                ⚡ Pemesanan Lapangan Badminton Real-time
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-text leading-tight tracking-tight">
+                Main Badminton Lebih Praktis, <br className="hidden sm:block" />
+                <span className="text-primary bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">Tanpa Antri</span>
               </h1>
-              <p className="text-lg lg:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                3 lapangan indoor premium, tersedia jam 08:00 - 21:00. Pilih tanggal, lapangan, dan jam mainmu dalam hitungan detik.
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Pilih tanggal, cek ketersediaan jam main secara instan, dan amankan lapangan pilihanmu hanya dalam beberapa klik.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/courts">
-                  <Button className="w-full sm:w-auto px-8 py-4 text-lg btn-primary">
-                    Mulai Booking
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                <Link href="/booking" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto px-8 py-6 text-base font-bold btn-primary rounded-xl shadow-md hover:shadow-lg transition-all">
+                    Mulai Booking Sekarang
                   </Button>
                 </Link>
-                <Link href="/courts">
-                  <Button className="w-full sm:w-auto px-8 py-4 text-lg border border-border bg-white text-text hover:bg-gray-50">
-                    Lihat Jadwal
+                <Link href="/courts" className="w-full sm:w-auto">
+                  <Button variant="outline" className="w-full sm:w-auto px-8 py-6 text-base font-medium rounded-xl border-border bg-white text-text hover:bg-gray-50">
+                    Lihat Lapangan & Harga
                   </Button>
                 </Link>
               </div>

@@ -20,9 +20,22 @@ export interface TimeSlotResult {
 /**
  * Generates all operating slots for a given day (08:00 to 21:00 in 1-hour increments)
  */
-export function generateOperatingSlots(): { startTime: number; endTime: number }[] {
+export async function getOperatingHours(): Promise<{ open: number; close: number }> {
+  try {
+    const config = await prisma.config.findUnique({ where: { key: "operational_hours" } });
+    if (config) {
+      return JSON.parse(config.value);
+    }
+  } catch {
+    // fallback
+  }
+  return { open: OPERATING_HOURS.OPEN, close: OPERATING_HOURS.CLOSE };
+}
+
+export async function generateOperatingSlots(): Promise<{ startTime: number; endTime: number }[]> {
+  const { open, close } = await getOperatingHours();
   const slots: { startTime: number; endTime: number }[] = [];
-  for (let h = OPERATING_HOURS.OPEN; h < OPERATING_HOURS.CLOSE; h++) {
+  for (let h = open; h < close; h++) {
     slots.push({
       startTime: h,
       endTime: h + 1,
@@ -73,7 +86,7 @@ export async function getCourtAvailability(
     },
   });
 
-  const baseSlots = generateOperatingSlots();
+  const baseSlots = await generateOperatingSlots();
 
   return baseSlots.map((slot) => {
     // Check if slot overlaps with any active booking

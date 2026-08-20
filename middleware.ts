@@ -8,8 +8,13 @@ const limiter = new Map<string, { count: number; resetAt: number }>();
 function rateLimitCheck(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
 
-  // Only apply to public booking/availability APIs
-  if (pathname.startsWith("/api/bookings") || pathname.startsWith("/api/availability")) {
+  // Apply rate limiting to sensitive routes
+  const isSensitiveRoute = pathname.startsWith("/api/bookings") || 
+                           pathname.startsWith("/api/availability") ||
+                           pathname.startsWith("/api/admin") ||
+                           pathname.startsWith("/api/payments");
+
+  if (isSensitiveRoute) {
     const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
                request.headers.get("x-real-ip") || 
                "anonymous";
