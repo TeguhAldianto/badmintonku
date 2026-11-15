@@ -1,71 +1,31 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { generateTimeSlots } from "@/lib/booking";
+import { availabilityQuerySchema } from "@/features/booking/schemas";
+import { getCourtAvailability } from "@/features/booking/server/availability.service";
+import { getOperatingHours } from "@/features/booking/server/availability.service";
+import { parseDateOnly } from "@/shared/lib/date";
+import { fail, handleRouteError, ok } from "@/shared/api/response";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const courtId = searchParams.get("courtId");
-  const dateStr = searchParams.get("date");
-
-  if (!courtId || !dateStr) {
-    return NextResponse.json(
-      { success: false, message: "courtId and date are required" },
-      { status: 400 }
-    );
-  }
-
   try {
-    const targetDate = new Date(dateStr + "T00:00:00.000Z");
-    const parsedCourtId = parseInt(courtId, 10);
-
-    const bookings = await prisma.booking.findMany({
-      where: {
-        courtId: parsedCourtId,
-        date: targetDate,
-        status: {
-          in: ["PENDING_PAYMENT", "WAITING_VERIFICATION", "CONFIRMED"],
-        },
-      },
+    const { searchParams } = new URL(request.url);
+    const parsed = availabilityQuerySchema.safeParse({
+      courtId: searchParams.get("courtId") ?? undefined,
+      date: searchParams.get("date") ?? undefined,
     });
 
-    const blockedSlots = await prisma.blockedSlot.findMany({
-      where: {
-        courtId: parsedCourtId,
-        date: targetDate,
-      },
-    });
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "Parameter tidak valid", 400);
+    }
 
-    const slots = generateTimeSlots();
+    const date = parseDateOnly(parsed.data.date);
+    if (!date) return fail("Format tanggal harus YYYY-MM-DD", 400);
 
-    const mappedSlots = slots.map((slot) => {
-      const isBooked = bookings.some(
-        (b) => slot.startTime >= b.startTime && slot.endTime <= b.endTime
-      );
-      if (isBooked) {
-        const booking = bookings.find(
-          (b) => slot.startTime >= b.startTime && slot.endTime <= b.endTime
-        );
-        return {
-          ...slot,
-          status: booking?.status === "PENDING_PAYMENT" ? "PENDING" : "BOOKED",
-        };
-      }
+    const [slots, hours] = await Promise.all([
+      getCourtAvailability(parsed.data.courtId, date),
+      getOperatingHours(),
+    ]);
 
-      const isBlocked = blockedSlots.some(
-        (bs) => slot.startTime >= bs.startTime && slot.endTime <= bs.endTime
-      );
-      if (isBlocked) {
-        return { ...slot, status: "BLOCKED" };
-      }
-
-      return slot;
-    });
-
-    return NextResponse.json({ success: true, data: mappedSlots });
-  } catch {
-    return NextResponse.json(
-      { success: false, message: "Gagal mengambil ketersediaan jadwal" },
-      { status: 500 }
-    );
+    return ok({ slots, operatingHours: hours });
+  } catch (error) {
+    return handleRouteError(error, "Gagal mengambil ketersediaan jadwal");
   }
 }

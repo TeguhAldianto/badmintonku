@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
 import dynamic from "next/dynamic";
-import { Card, CardContent } from "@/components/ui/card";
 
-const Chart = dynamic(() => import("@/components/admin/ReportCharts"), { ssr: false });
+import { StatusBadge } from "@/shared/components/status-badge";
+import { formatCurrency } from "@/shared/lib/format";
+
+const Chart = dynamic(() => import("@/features/admin/components/ReportCharts"), { ssr: false });
 
 interface ReportsData {
   totalBookings: number;
@@ -16,95 +18,145 @@ interface ReportsData {
 }
 
 export default function ClientReportsPage({ data }: { data: ReportsData }) {
+  const summary = [
+    { label: "Total booking", value: data.totalBookings.toString(), accent: "border-[#141824]" },
+    {
+      label: "Pendapatan bulan ini",
+      value: formatCurrency(data.monthlyRevenue),
+      accent: "border-[#1E3A8A]",
+    },
+    {
+      label: "Pendapatan tahun ini",
+      value: formatCurrency(data.yearlyRevenue),
+      accent: "border-[#1E3A8A]",
+    },
+    {
+      label: "Total pendapatan",
+      value: formatCurrency(data.totalRevenue),
+      accent: "border-[#C84B31]",
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-text">Laporan & Analitik</h1>
-
-      <Chart />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Total Booking</h3>
-            <p className="text-3xl font-bold text-text">{data.totalBookings}</p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Pendapatan Bulan Ini</h3>
-            <p className="text-3xl font-bold text-green-600">
-              Rp {Number(data.monthlyRevenue).toLocaleString("id-ID")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Pendapatan Tahun Ini</h3>
-            <p className="text-3xl font-bold text-blue-600">
-              Rp {Number(data.yearlyRevenue).toLocaleString("id-ID")}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Total Pendapatan</h3>
-            <p className="text-3xl font-bold text-text">
-              Rp {Number(data.totalRevenue).toLocaleString("id-ID")}
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+            Modul 07
+          </span>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+            Laporan &amp; Analitik
+          </h1>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+          Pendapatan dihitung dari booking dikonfirmasi &amp; selesai
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Booking per Lapangan</h3>
-            <div className="space-y-3">
-              {data.bookingsByCourt.map((c) => (
-                <div key={c.court} className="flex justify-between items-center py-2 border-b last:border-0">
-                  <span className="font-medium">{c.court}</span>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{c.count} booking</p>
-                    <p className="text-xs text-gray-500">Rp {c.revenue.toLocaleString("id-ID")}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Booking per Status</h3>
-            <div className="space-y-3">
-              {data.bookingsByStatus.map((s) => (
-                <div key={s.status} className="flex justify-between items-center py-2 border-b last:border-0">
-                  <span className="capitalize font-medium">{s.status.replace(/_/g, " ")}</span>
-                  <span className="text-sm font-semibold text-primary">{s.count}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Jam Tersibuk (Top 5)</h3>
-            <div className="space-y-3">
-              {data.busiestHours.length === 0 ? (
-                <p className="text-sm text-gray-500">Belum ada data booking</p>
-              ) : (
-                data.busiestHours.map((h) => (
-                  <div key={h.hour} className="flex justify-between items-center py-2 border-b last:border-0">
-                    <span className="font-medium">{h.hour}</span>
-                    <span className="text-sm font-semibold text-primary">{h.count} booking</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {summary.map((item) => (
+          <div
+            key={item.label}
+            className={`border border-[#141824]/25 border-l-[3px] ${item.accent} bg-[#FAF9F6] p-4`}
+          >
+            <h2 className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              {item.label}
+            </h2>
+            <p className="mt-1.5 font-mono text-lg font-bold tabular-nums text-[#141824]">
+              {item.value}
+            </p>
+          </div>
+        ))}
       </div>
+
+      <Chart data={data.busiestHours} />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="border border-[#141824] bg-[#FAF9F6]">
+          <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+              Booking per lapangan
+            </h2>
+          </header>
+          <ul className="divide-y divide-[#141824]/15">
+            {data.bookingsByCourt.length === 0 ? (
+              <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+                Belum ada data
+              </li>
+            ) : (
+              data.bookingsByCourt.map((court) => (
+                <li
+                  key={court.court}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                >
+                  <span className="text-xs font-semibold text-[#141824]">{court.court}</span>
+                  <span className="text-right">
+                    <span className="block font-mono text-[11px] font-bold tabular-nums text-[#141824]">
+                      {court.count} booking
+                    </span>
+                    <span className="block font-mono text-[10px] tabular-nums text-[#6E6A61]">
+                      {formatCurrency(court.revenue)}
+                    </span>
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
+        </section>
+
+        <section className="border border-[#141824] bg-[#FAF9F6]">
+          <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+              Booking per status
+            </h2>
+          </header>
+          <ul className="divide-y divide-[#141824]/15">
+            {data.bookingsByStatus.length === 0 ? (
+              <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+                Belum ada data
+              </li>
+            ) : (
+              data.bookingsByStatus.map((status) => (
+                <li
+                  key={status.status}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                >
+                  <StatusBadge status={status.status} />
+                  <span className="font-mono text-[11px] font-bold tabular-nums text-[#141824]">
+                    {status.count}
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
+        </section>
+      </div>
+
+      <section className="border border-[#141824] bg-[#FAF9F6]">
+        <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+          <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+            Jam tersibuk (5 teratas)
+          </h2>
+        </header>
+        <ul className="divide-y divide-[#141824]/15">
+          {data.busiestHours.length === 0 ? (
+            <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              Belum ada data booking
+            </li>
+          ) : (
+            data.busiestHours.map((hour) => (
+              <li key={hour.hour} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                <span className="font-mono text-[11px] font-semibold tabular-nums text-[#141824]">
+                  {hour.hour}
+                </span>
+                <span className="font-mono text-[11px] font-bold tabular-nums text-[#1E3A8A]">
+                  {hour.count} booking
+                </span>
+              </li>
+            ))
+          )}
+        </ul>
+      </section>
     </div>
   );
 }

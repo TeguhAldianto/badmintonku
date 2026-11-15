@@ -1,33 +1,42 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
+import { z } from "zod";
+import { prisma } from "@/server/db/prisma";
+import { requireAdmin } from "@/server/auth/guards";
+import { ValidationError } from "@/shared/api/errors";
+import { fail, handleRouteError, ok, readJson } from "@/shared/api/response";
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const updateCourtSchema = z.object({
+  name: z.string().trim().min(2).max(100).optional(),
+  description: z.string().trim().max(500).nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
-    const session = await auth();
+    await requireAdmin();
 
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+    const { id } = await params;
+    const courtId = Number(id);
+    if (!Number.isInteger(courtId) || courtId <= 0) {
+      return fail("ID lapangan tidak valid", 400);
     }
 
-    const body = await request.json();
-    const { name, description, isActive } = body;
+    const body = await readJson<unknown>(request);
+    const parsed = updateCourtSchema.safeParse(body);
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "Data lapangan tidak valid", 400);
+    }
+
+    if (Object.keys(parsed.data).length === 0) {
+      throw new ValidationError("Tidak ada perubahan yang dikirim");
+    }
 
     const court = await prisma.court.update({
-      where: { id: parseInt(id, 10) },
-      data: {
-        name: name ?? undefined,
-        description: description ?? undefined,
-        isActive: isActive ?? undefined,
-      },
+      where: { id: courtId },
+      data: parsed.data,
     });
 
-    return NextResponse.json({ success: true, data: court });
-  } catch {
-    return NextResponse.json({ success: false, message: "Gagal memperbarui lapangan" }, { status: 500 });
+    return ok(court);
+  } catch (error) {
+    return handleRouteError(error, "Gagal memperbarui lapangan");
   }
 }

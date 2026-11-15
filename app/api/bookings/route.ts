@@ -1,34 +1,31 @@
-import { NextResponse } from "next/server";
-import { createBooking } from "@/services/booking.service";
+import { createBookingSchema } from "@/features/booking/schemas";
+import { createBooking } from "@/features/booking/server/booking.service";
+import { parseDateOnly } from "@/shared/lib/date";
+import { fail, handleRouteError, ok, readJson } from "@/shared/api/response";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { courtId, date, startTime, endTime, userName, userPhone } = body;
+    const body = await readJson<unknown>(request);
+    const parsed = createBookingSchema.safeParse(body);
 
-    if (!courtId || !date || startTime === undefined || endTime === undefined || !userName || !userPhone) {
-      return NextResponse.json(
-        { success: false, message: "Data booking tidak lengkap" },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "Data booking tidak lengkap", 400);
     }
 
+    const date = parseDateOnly(parsed.data.date);
+    if (!date) return fail("Format tanggal harus YYYY-MM-DD", 400);
+
     const booking = await createBooking({
-      courtId: parseInt(courtId, 10),
-      date: new Date(date + "T00:00:00.000Z"),
-      startTime,
-      endTime,
-      userName,
-      userPhone,
+      courtId: parsed.data.courtId,
+      date,
+      startTime: parsed.data.startTime,
+      endTime: parsed.data.endTime,
+      userName: parsed.data.userName,
+      userPhone: parsed.data.userPhone,
     });
 
-    return NextResponse.json({ success: true, data: booking });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Gagal membuat booking";
-    const status = message.includes("tidak tersedia") || message.includes("dibooking") ? 409 : 400;
-    return NextResponse.json(
-      { success: false, message },
-      { status }
-    );
+    return ok(booking, 201);
+  } catch (error) {
+    return handleRouteError(error, "Gagal membuat booking");
   }
 }

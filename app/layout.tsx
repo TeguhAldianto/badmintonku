@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SiteHeader } from "@/shared/components/site-header";
+import { SiteFooter } from "@/shared/components/site-footer";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Space_Grotesk({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sans = Plus_Jakarta_Sans({
+  variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const mono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "BadmintonKu - Booking Lapangan Badminton",
-  description: "Platform booking lapangan badminton online yang mudah, cepat, dan terpercaya",
+  title: "KLAB TANGKIS — Ruang Bulutangkis",
+  description: "Arena bulutangkis arsitektural dengan fasilitas standar BWF.",
 };
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
@@ -27,7 +34,7 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
     : "https://app.sandbox.midtrans.com/snap/snap.js";
 
   return (
-    <html lang="id" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="id" className={`${display.variable} ${sans.variable} ${mono.variable} h-full antialiased`}>
       <head>
         <Script
           src={midtransScriptUrl}
@@ -35,8 +42,12 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           strategy="lazyOnload"
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-text">
-        <Providers>{children}</Providers>
+      <body className="min-h-full flex flex-col font-sans bg-[#F5F3EE] text-[#141824]">
+        <Providers>
+          <SiteHeader />
+          <div className="min-w-0 flex-1">{children}</div>
+          <SiteFooter />
+        </Providers>
       </body>
     </html>
   );

@@ -1,191 +1,271 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 
-export default function HomePage() {
+import { prisma } from "@/server/db/prisma";
+import { getPricePerHour } from "@/features/booking/server/availability.service";
+import { FloorplanShowcase } from "@/features/booking/components/floorplan-showcase";
+import { formatCurrency } from "@/shared/lib/format";
+
+export const dynamic = "force-dynamic";
+
+const SPECS = [
+  {
+    code: "A.01",
+    label: "Plafon bebas",
+    value: "14.0 M",
+    note: "Tanpa balok penghalang lintasan shuttlecock.",
+  },
+  {
+    code: "A.02",
+    label: "Pencahayaan",
+    value: "800 LUX",
+    note: "Side-LED anti-silau, CRI di atas 90.",
+  },
+  {
+    code: "A.03",
+    label: "Sub-lantai",
+    value: "BWF PRO",
+    note: "Konstruksi pegas kayu penyerap benturan sendi.",
+  },
+  {
+    code: "A.04",
+    label: "Zona tunggu",
+    value: "3 AREA",
+    note: "Bangku pemain, lounge, dan ruang bilas terpisah.",
+  },
+];
+
+const FACILITIES = [
+  "Lantai vinyl standar BWF 7.0 mm dengan garis resmi turnamen.",
+  "Jaring dan tiang bersertifikasi dengan tegangan tetap setiap pagi.",
+  "Ruang ganti, shower air panas, dan loker berpengunci.",
+  "Area parkir dalam gedung untuk mobil dan motor.",
+  "Kantin ringan, isi ulang air minum, dan penyewaan raket karbon.",
+  "Pencahayaan darurat serta jalur evakuasi bertanda jelas.",
+];
+
+const STEPS = [
+  {
+    step: "01",
+    title: "Cek ketersediaan",
+    body: "Matriks jadwal menampilkan slot per jam untuk setiap lapangan, langsung dari basis data arena.",
+  },
+  {
+    step: "02",
+    title: "Kunci slot",
+    body: "Pilih jam main, isi nama dan nomor WhatsApp. Slot berurutan otomatis digabung jadi satu reservasi.",
+  },
+  {
+    step: "03",
+    title: "Bayar & masuk",
+    body: "Selesaikan pembayaran Midtrans atau unggah bukti transfer. E-tiket terbit setelah verifikasi.",
+  },
+];
+
+export default async function HomePage() {
+  const [courts, pricePerHour] = await Promise.all([
+    prisma.court.findMany({ orderBy: { id: "asc" } }),
+    getPricePerHour(),
+  ]);
+
+  const activeCourts = courts.filter((court) => court.isActive).length;
+  const floorplanCourts = courts.map((court) => ({
+    id: court.id,
+    name: court.name,
+    description: court.description,
+    isActive: court.isActive,
+    pricePerHour,
+  }));
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-all">
-        <div className="container-app flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-extrabold text-primary flex items-center gap-2 tracking-tight">
-            <span className="text-2xl animate-bounce">🏸</span>
-            BadmintonKu
-          </Link>
-          <nav className="flex items-center gap-3 sm:gap-4">
-            <Link href="/courts" className="text-text hover:text-primary transition-colors text-sm font-medium hidden sm:block">
-              Cari Lapangan
-            </Link>
-            <Link href="/booking" className="btn-primary px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:shadow transition-all">
-              Booking Sekarang
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <main className="flex-1">
-        <section className="py-20 lg:py-28 bg-gradient-to-b from-primary/10 via-primary/5 to-background relative overflow-hidden">
-          <div className="container-app relative z-10">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wide uppercase">
-                ⚡ Pemesanan Lapangan Badminton Real-time
+    <div>
+      {/* HERO */}
+      <section className="border-b border-[#141824]">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8 lg:py-16">
+          <div className="flex flex-col justify-between lg:col-span-5">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-[2px] border border-[#141824]/25 bg-[#EAE6DD] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#141824]">
+                <span className="inline-block h-1.5 w-1.5 bg-[#C84B31]" />
+                Arena bulutangkis · Jakarta Selatan
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-text leading-tight tracking-tight">
-                Main Badminton Lebih Praktis, <br className="hidden sm:block" />
-                <span className="text-primary bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">Tanpa Antri</span>
+
+              <h1 className="mt-5 font-display text-3xl font-bold leading-[1.06] tracking-tight text-[#141824] sm:text-4xl lg:text-[46px]">
+                Ruang main dengan presisi arsitektural.
               </h1>
-              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                Pilih tanggal, cek ketersediaan jam main secara instan, dan amankan lapangan pilihanmu hanya dalam beberapa klik.
+
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#6E6A61] sm:text-[15px]">
+                Tiga lapangan indoor standar turnamen di dalam satu hall dengan plafon bebas 14
+                meter, pencahayaan samping anti-silau, dan sub-lantai pegas. Reservasi dihitung
+                langsung dari ketersediaan nyata — tanpa telepon, tanpa antre.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-                <Link href="/booking" className="w-full sm:w-auto">
-                  <Button className="w-full sm:w-auto px-8 py-6 text-base font-bold btn-primary rounded-xl shadow-md hover:shadow-lg transition-all">
-                    Mulai Booking Sekarang
-                  </Button>
-                </Link>
-                <Link href="/courts" className="w-full sm:w-auto">
-                  <Button variant="outline" className="w-full sm:w-auto px-8 py-6 text-base font-medium rounded-xl border-border bg-white text-text hover:bg-gray-50">
-                    Lihat Lapangan & Harga
-                  </Button>
-                </Link>
+
+              <div className="mt-6 grid grid-cols-3 divide-x divide-[#141824]/25 border border-[#141824]/25 bg-[#FAF9F6]">
+                <div className="p-3">
+                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                    Lapangan
+                  </span>
+                  <span className="mt-0.5 block font-display text-lg font-bold text-[#141824]">
+                    {activeCourts.toString().padStart(2, "0")} / {courts.length.toString().padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                    Tarif / jam
+                  </span>
+                  <span className="mt-0.5 block font-mono text-sm font-bold text-[#1E3A8A]">
+                    {formatCurrency(pricePerHour)}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                    Jam buka
+                  </span>
+                  <span className="mt-0.5 block font-mono text-sm font-bold text-[#141824]">
+                    08—21
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Features */}
-        <section className="py-20 bg-background-alt">
-          <div className="container-app">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-text mb-4">Kenapa BadmintonKu?</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">Pengalaman booking yang dirancang untuk pemain badminton modern</p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="card-custom hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">📅</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-text mb-2">Jadwal Real-time</h3>
-                  <p className="text-gray-600">Lihat ketersediaan lapangan secara langsung, tidak ada double booking.</p>
-                </CardContent>
-              </Card>
-              <Card className="card-custom hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">⚡</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-text mb-2">Proses Cepat</h3>
-                  <p className="text-gray-600">Booking selesai dalam 3 langkah: Tanggal → Lapangan → Jam.</p>
-                </CardContent>
-              </Card>
-              <Card className="card-custom hover:shadow-lg transition-shadow">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-3xl">📱</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-text mb-2">Notifikasi WhatsApp</h3>
-                  <p className="text-gray-600">Dapatkan konfirmasi booking dan pengingat jadwal langsung ke WhatsApp.</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Courts Preview */}
-        <section className="py-20">
-          <div className="container-app">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-text mb-4">Lapangan Kami</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">3 lapangan indoor standar internasional dengan pencahayaan LED dan AC</p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((num) => (
-                <Card key={num} className="card-custom overflow-hidden hover:shadow-xl transition-shadow">
-                  <div className="h-40 bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center">
-                    <span className="text-6xl font-bold text-white/20">Lapangan {num}</span>
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-semibold text-text mb-2">Lapangan {num}</h3>
-                    <p className="text-gray-600 mb-4">Lapangan indoor standar dengan lantai kayu sintetis, AC, dan pencahayaan LED profesional.</p>
-                    <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                      <li className="flex items-center gap-2">✓ Lantai kayu sintetis premium</li>
-                      <li className="flex items-center gap-2">✓ AC pendingin ruangan</li>
-                      <li className="flex items-center gap-2">✓ Pencahayaan LED standar BWF</li>
-                    </ul>
-                    <Link href="/courts">
-                      <Button className="w-full btn-primary">Pilih Lapangan Ini</Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <div className="text-center mt-10">
-              <Link href="/courts">
-                <Button className="px-8 py-4 text-lg border border-border bg-white text-text hover:bg-gray-50">
-                  Lihat Semua Lapangan
-                </Button>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/booking"
+                className="inline-flex items-center gap-3 rounded-[2px] border border-[#141824] bg-[#C84B31] px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#FAF9F6] transition-colors hover:bg-[#141824]"
+              >
+                Reservasi lapangan
+                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </Link>
+              <Link
+                href="/courts"
+                className="inline-flex items-center gap-2 rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] px-5 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#141824] transition-colors hover:border-[#141824] hover:bg-[#EAE6DD]"
+              >
+                Lihat lapangan
+                <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
               </Link>
             </div>
           </div>
-        </section>
 
-        {/* CTA */}
-        <section className="py-20 bg-primary text-white">
-          <div className="container-app text-center">
-            <h2 className="text-3xl font-bold mb-4">Siap Main Badminton?</h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">Booking sekarang dan main besok. Proses cepat, jadwal real-time, pembayaran aman.</p>
-            <Link href="/courts">
-              <Button className="bg-white text-primary hover:bg-gray-100 px-8 py-4 text-lg">
-                Booking Sekarang
-              </Button>
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-background-alt border-t border-border py-12">
-        <div className="container-app">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-text mb-4 flex items-center gap-2">
-                <span className="text-2xl">🏸</span>
-                BadmintonKu
-              </h3>
-              <p className="text-gray-600 text-sm">Platform booking lapangan badminton terpercaya untuk pemain Indonesia.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-text mb-4">Layanan</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><Link href="/courts" className="hover:text-primary">Cari Lapangan</Link></li>
-                <li><Link href="/courts" className="hover:text-primary">Lihat Jadwal</Link></li>
-                <li><Link href="/dashboard" className="hover:text-primary">Dashboard</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-text mb-4">Bantuan</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>Cara Booking</li>
-                <li>Syarat & Ketentuan</li>
-                <li>Kebijakan Privasi</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-text mb-4">Kontak</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>WhatsApp: 08xx-xxxx-xxxx</li>
-                <li>Email: info@badmintonku.com</li>
-                <li>Instagram: @badmintonku</li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-gray-500">
-            © 2025 BadmintonKu. All rights reserved.
+          <div className="lg:col-span-7">
+            <FloorplanShowcase courts={floorplanCourts} />
+            <p className="mt-2 font-mono text-[10px] uppercase leading-relaxed tracking-wider text-[#6E6A61]">
+              Denah berskala · klik unit untuk melihat spesifikasi matras dan status operasional.
+            </p>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* SPECIFICATIONS */}
+      <section className="border-b border-[#141824]/20">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
+            <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+              Spesifikasi bangunan
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
+              Lembar A — Data teknis
+            </span>
+          </div>
+
+          <dl className="mt-4 grid gap-px border border-[#141824] bg-[#141824]/30 sm:grid-cols-2 lg:grid-cols-4">
+            {SPECS.map((spec) => (
+              <div key={spec.code} className="bg-[#FAF9F6] p-4">
+                <dt className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+                  <span>{spec.label}</span>
+                  <span className="text-[#141824]/40">{spec.code}</span>
+                </dt>
+                <dd className="mt-2 font-display text-2xl font-bold tracking-tight text-[#141824]">
+                  {spec.value}
+                </dd>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-[#6E6A61]">{spec.note}</p>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* FACILITIES + STEPS */}
+      <section>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-14">
+          <div className="lg:col-span-7">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
+              <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+                Fasilitas arena
+              </h2>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
+                Lembar B — Inventaris
+              </span>
+            </div>
+
+            <ul className="mt-4 divide-y divide-[#141824]/15 border-y border-[#141824]/25">
+              {FACILITIES.map((facility, index) => (
+                <li key={facility} className="flex gap-4 py-3">
+                  <span className="w-8 shrink-0 font-mono text-[10px] font-bold text-[#C84B31]">
+                    {(index + 1).toString().padStart(2, "0")}
+                  </span>
+                  <span className="text-xs leading-relaxed text-[#141824] sm:text-sm">
+                    {facility}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
+              <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+                Cara reservasi
+              </h2>
+              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
+                Lembar C — Prosedur
+              </span>
+            </div>
+
+            <ol className="mt-4 space-y-3">
+              {STEPS.map((item) => (
+                <li
+                  key={item.step}
+                  className="rounded-[2px] border border-[#141824]/25 bg-[#FAF9F6] p-4"
+                >
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#C84B31]">
+                    Langkah {item.step}
+                  </span>
+                  <h3 className="mt-1 font-display text-base font-bold text-[#141824]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[#6E6A61] sm:text-xs">
+                    {item.body}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="border-y border-[#141824] bg-[#141824] text-[#FAF9F6]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-12">
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#C84B31]">
+              Slot terbatas per jam
+            </span>
+            <h2 className="mt-1.5 max-w-xl font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
+              Amankan jam main Anda sebelum diambil pemain lain.
+            </h2>
+            <p className="mt-2 max-w-xl text-xs leading-relaxed text-[#EAE6DD]/70 sm:text-sm">
+              Ketersediaan diperbarui setiap kali halaman dimuat. Slot yang belum dibayar dilepas
+              otomatis setelah 60 menit.
+            </p>
+          </div>
+          <Link
+            href="/booking"
+            className="inline-flex shrink-0 items-center justify-center gap-3 rounded-[2px] border border-[#FAF9F6] bg-[#C84B31] px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#FAF9F6] transition-colors hover:bg-[#FAF9F6] hover:text-[#141824]"
+          >
+            Mulai reservasi
+            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

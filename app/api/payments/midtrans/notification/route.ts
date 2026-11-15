@@ -1,21 +1,31 @@
 import { NextResponse } from "next/server";
-import { handleMidtransNotification } from "@/services/midtrans.notification";
-
+import { handleMidtransNotification } from "@/features/payment/server/midtrans.webhook";
+import type { MidtransNotificationPayload } from "@/features/payment/server/midtrans.gateway";
+import { handleRouteError, readJson } from "@/shared/api/response";
 export async function POST(request: Request) {
   try {
-    const notification = await request.json();
-    
-    console.log("Received Midtrans notification:", JSON.stringify(notification, null, 2));
+    const payload = await readJson<MidtransNotificationPayload>(request);
 
-    const result = await handleMidtransNotification(notification);
+    console.log("Received Midtrans notification:", {
+      order_id: payload.order_id,
+      transaction_status: payload.transaction_status,
+      status_code: payload.status_code,
+    });
+
+    const result = await handleMidtransNotification(payload);
+
+    if (!result.success) {
+      const status =
+        result.message === "Invalid signature"
+          ? 401
+          : result.message === "Payment not found"
+            ? 404
+            : 400;
+      return NextResponse.json(result, { status });
+    }
 
     return NextResponse.json(result);
-  } catch (error: unknown) {
-    console.error("Error handling Midtrans notification:", error);
-    const message = error instanceof Error ? error.message : "Gagal memproses notifikasi";
-    return NextResponse.json(
-      { success: false, message },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleRouteError(error, "Gagal memproses notifikasi");
   }
 }

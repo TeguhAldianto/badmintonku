@@ -1,49 +1,38 @@
-import { NextResponse } from "next/server";
-import { processPaymentAdmin } from "@/services/payment.service";
-import { auth } from "@/auth";
+import { z } from "zod";
+import { requireAdmin } from "@/server/auth/guards";
+import { processPaymentAdmin } from "@/features/payment/server/payment.service";
+import { fail, handleRouteError, ok, readJson } from "@/shared/api/response";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+const actionSchema = z
+  .object({
+    action: z.enum(["APPROVE", "REJECT"]),
+    rejectionReason: z.string().trim().max(500).optional(),
+  })
+  .refine((value) => value.action !== "REJECT" || Boolean(value.rejectionReason), {
+    message: "Alasan penolakan wajib diisi",
+    path: ["rejectionReason"],
+  });
+
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await requireAdmin();
     const { id } = await params;
-    const session = await auth();
 
-    if (!session?.user || session.user.role !== "ADMIN") {
-      return NextResponse.json({ success: false, message: "Forbidden: Admin only" }, { status: 403 });
+    const body = await readJson<unknown>(request);
+    const parsed = actionSchema.safeParse(body);
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "Data tidak valid", 400);
     }
 
-    const body = await request.json();
-    const { action, rejectionReason } = body;
-
-    if (!action || !["APPROVE", "REJECT"].includes(action)) {
-      return NextResponse.json(
-        { success: false, message: "Action harus APPROVE atau REJECT" },
-        { status: 400 }
-      );
-    }
-
-    if (action === "REJECT" && !rejectionReason) {
-      return NextResponse.json(
-        { success: false, message: "Alasan penolakan wajib diisi" },
-        { status: 400 }
-      );
-    }
-
-    const adminId = session.user.id ?? "admin-unknown";
-    
-    const payment = await processPaymentAdmin({
+    const result = await processPaymentAdmin({
       paymentId: id,
-      action,
-      adminId,
-      rejectionReason,
+      action: parsed.data.action,
+      adminId: session.user?.id ?? session.user?.email ?? "admin-unknown",
+      rejectionReason: parsed.data.rejectionReason,
     });
 
-    return NextResponse.json({ success: true, data: payment });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Gagal memproses pembayaran";
-    const status = message.includes("Forbidden") ? 403 : 400;
-    return NextResponse.json({ success: false, message }, { status });
+    return ok(result);
+  } catch (error) {
+    return handleRouteError(error, "Gagal memproses pembayaran");
   }
 }

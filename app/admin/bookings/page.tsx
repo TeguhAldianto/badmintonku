@@ -1,11 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDateIndo, formatTimeSlot } from "@/lib/booking";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { StatusBadge } from "@/shared/components/status-badge";
+import { formatCurrency, formatDateIndo, formatTimeSlot } from "@/shared/lib/format";
 import { toast } from "sonner";
 
 interface Booking {
@@ -20,6 +25,9 @@ interface Booking {
   totalPrice: number;
   createdAt: string;
 }
+
+const ACTION_BUTTON =
+  "rounded-[2px] border px-2 py-1 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap";
 
 export default function AdminBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -69,169 +77,233 @@ export default function AdminBookingsPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      PENDING_PAYMENT: "bg-gray-100 text-gray-700",
-      WAITING_VERIFICATION: "bg-yellow-100 text-yellow-800",
-      CONFIRMED: "bg-green-100 text-green-800",
-      COMPLETED: "bg-blue-100 text-blue-800",
-      CANCELLED: "bg-red-100 text-red-800",
-      REJECTED: "bg-red-100 text-red-800",
-      EXPIRED: "bg-gray-100 text-gray-500",
-    };
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${styles[status] || "bg-gray-100 text-gray-700"}`}>
-        {status}
-      </span>
-    );
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-text">Manajemen Booking</h1>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+            Modul 03
+          </span>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+            Manajemen Booking
+          </h1>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+          {loading ? "Memuat…" : `${bookings.length} baris ditampilkan`}
+        </span>
       </div>
 
-      <Card className="card-custom mb-6">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-4">
-          <Input
-            placeholder="Cari nama, nomor HP, atau kode booking..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-xs sm:max-w-md"
-          />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Semua Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Status</SelectItem>
-              <SelectItem value="PENDING_PAYMENT">Menunggu Pembayaran</SelectItem>
-              <SelectItem value="WAITING_VERIFICATION">Menunggu Verifikasi</SelectItem>
-              <SelectItem value="CONFIRMED">Dikonfirmasi</SelectItem>
-              <SelectItem value="COMPLETED">Selesai</SelectItem>
-              <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
-              <SelectItem value="REJECTED">Ditolak</SelectItem>
-              <SelectItem value="EXPIRED">Kadaluarsa</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col gap-2 border border-[#141824] bg-[#EAE6DD] p-3 sm:flex-row sm:items-center">
+        <Input
+          placeholder="Cari nama, nomor HP, atau kode booking…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="max-w-md bg-[#FAF9F6]"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Semua Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            <SelectItem value="PENDING_PAYMENT">Menunggu Pembayaran</SelectItem>
+            <SelectItem value="WAITING_VERIFICATION">Menunggu Verifikasi</SelectItem>
+            <SelectItem value="CONFIRMED">Dikonfirmasi</SelectItem>
+            <SelectItem value="COMPLETED">Selesai</SelectItem>
+            <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
+            <SelectItem value="REJECTED">Ditolak</SelectItem>
+            <SelectItem value="EXPIRED">Kadaluarsa</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <Card className="card-custom">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center">Memuat...</div>
-          ) : bookings.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">Tidak ada booking</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lapangan</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jam</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {bookings.map((b) => (
-                    <tr key={b.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-mono text-sm">{b.id.slice(0, 8)}</td>
-                      <td className="px-6 py-4">{b.userName} ({b.userPhone})</td>
-                      <td className="px-6 py-4">{b.court?.name || "-"}</td>
-                      <td className="px-6 py-4">{formatDateIndo(new Date(b.date))}</td>
-                      <td className="px-6 py-4">{formatTimeSlot({ startTime: b.startTime, endTime: b.endTime, status: "BOOKED" })}</td>
-                      <td className="px-6 py-4">{getStatusBadge(b.status)}</td>
-                      <td className="px-6 py-4 font-medium">Rp {Number(b.totalPrice).toLocaleString("id-ID")}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          {b.status === "WAITING_VERIFICATION" && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleStatusChange(b.id, "CONFIRMED")}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                Approve
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange(b.id, "REJECTED")}
-                                className="text-red-600 border-red-600 hover:bg-red-50"
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                          {b.status === "PENDING_PAYMENT" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleStatusChange(b.id, "CANCELLED")}
-                              className="text-gray-600 border-gray-600 hover:bg-gray-50"
-                            >
-                              Batalkan
-                            </Button>
-                          )}
-                          {b.status === "CONFIRMED" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleStatusChange(b.id, "COMPLETED")}
-                              className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                            >
-                              Selesai
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setSelectedBooking(b)}
-                          >
-                            Detail
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
+      <section className="border border-[#141824] bg-[#FAF9F6]">
+        {loading ? (
+          <p className="px-4 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]">
+            Memuat data booking…
+          </p>
+        ) : bookings.length === 0 ? (
+          <p className="px-4 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]">
+            Tidak ada booking yang cocok dengan filter
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[960px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#141824] bg-[#EAE6DD]">
+                  {[
+                    "Kode",
+                    "Pemesan",
+                    "Lapangan",
+                    "Tanggal",
+                    "Jam",
+                    "Status",
+                    "Harga",
+                    "Aksi",
+                  ].map((header) => (
+                    <th
+                      key={header}
+                      className="whitespace-nowrap px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-wider text-[#141824]"
+                    >
+                      {header}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((booking) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-[#141824]/10 last:border-0 hover:bg-[#EAE6DD]/40"
+                  >
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] text-[#141824]">
+                      {booking.id.slice(0, 8)}
+                    </td>
+                    <td className="px-3 py-2.5 text-xs text-[#141824]">
+                      <span className="block font-semibold">{booking.userName}</span>
+                      <span className="font-mono text-[10px] text-[#6E6A61]">
+                        {booking.userPhone}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-xs text-[#141824]">
+                      {booking.court?.name || "-"}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[10px] text-[#6E6A61]">
+                      {formatDateIndo(new Date(booking.date))}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[10px] tabular-nums text-[#141824]">
+                      {formatTimeSlot({ startTime: booking.startTime, endTime: booking.endTime })}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5">
+                      <StatusBadge status={booking.status} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] font-semibold tabular-nums text-[#141824]">
+                      {formatCurrency(booking.totalPrice)}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex flex-wrap gap-1">
+                        {booking.status === "WAITING_VERIFICATION" ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(booking.id, "CONFIRMED")}
+                              className={`${ACTION_BUTTON} border-[#1E3A8A] bg-[#1E3A8A] text-[#FAF9F6] hover:bg-[#141824] hover:border-[#141824]`}
+                            >
+                              Setujui
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(booking.id, "REJECTED")}
+                              className={`${ACTION_BUTTON} border-[#C84B31]/60 bg-[#FAF9F6] text-[#C84B31] hover:bg-[#C84B31] hover:text-[#FAF9F6]`}
+                            >
+                              Tolak
+                            </button>
+                          </>
+                        ) : null}
 
-      {selectedBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <h3 className="text-xl font-bold">Detail Booking</h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-gray-500">Kode:</span> <span className="font-mono font-bold">{selectedBooking.id}</span></div>
-                <div><span className="text-gray-500">Status:</span> {getStatusBadge(selectedBooking.status)}</div>
-                <div className="col-span-2"><span className="text-gray-500">User:</span> {selectedBooking.userName} ({selectedBooking.userPhone})</div>
-                <div><span className="text-gray-500">Lapangan:</span> {selectedBooking.court?.name || "-"}</div>
-                <div><span className="text-gray-500">Tanggal:</span> {formatDateIndo(new Date(selectedBooking.date))}</div>
-                <div className="col-span-2"><span className="text-gray-500">Jam:</span> {formatTimeSlot({ startTime: selectedBooking.startTime, endTime: selectedBooking.endTime, status: "BOOKED" })}</div>
-                <div className="col-span-2"><span className="text-gray-500">Harga:</span> Rp {Number(selectedBooking.totalPrice).toLocaleString("id-ID")}</div>
-                <div className="col-span-2"><span className="text-gray-500">Dibuat:</span> {new Date(selectedBooking.createdAt).toLocaleString("id-ID")}</div>
+                        {booking.status === "PENDING_PAYMENT" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(booking.id, "CANCELLED")}
+                            className={`${ACTION_BUTTON} border-[#141824]/30 bg-[#FAF9F6] text-[#6E6A61] hover:border-[#C84B31] hover:text-[#C84B31]`}
+                          >
+                            Batalkan
+                          </button>
+                        ) : null}
+
+                        {booking.status === "CONFIRMED" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(booking.id, "COMPLETED")}
+                            className={`${ACTION_BUTTON} border-[#141824] bg-[#141824] text-[#FAF9F6] hover:bg-[#1E3A8A] hover:border-[#1E3A8A]`}
+                          >
+                            Selesai
+                          </button>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBooking(booking)}
+                          className={`${ACTION_BUTTON} border-[#141824]/30 bg-[#F5F3EE] text-[#141824] hover:border-[#141824]`}
+                        >
+                          Detail
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {selectedBooking ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#141824]/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-detail-heading"
+        >
+          <div className="w-full max-w-lg overflow-hidden rounded-[2px] border border-[#141824] bg-[#FAF9F6]">
+            <header className="flex items-center justify-between border-b border-[#141824] bg-[#141824] px-4 py-3 text-[#FAF9F6]">
+              <div>
+                <span className="block font-mono text-[9px] uppercase tracking-[0.22em] text-[#EAE6DD]/60">
+                  Detail reservasi
+                </span>
+                <h3 id="booking-detail-heading" className="font-display text-base font-bold">
+                  {selectedBooking.id.slice(0, 12)}
+                </h3>
               </div>
-              <div className="pt-4 border-t flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setSelectedBooking(null)}>Tutup</Button>
-              </div>
+              <StatusBadge status={selectedBooking.status} />
+            </header>
+
+            <dl className="divide-y divide-[#141824]/15">
+              {[
+                { label: "Pemesan", value: selectedBooking.userName },
+                { label: "Nomor HP", value: selectedBooking.userPhone },
+                { label: "Lapangan", value: selectedBooking.court?.name || "-" },
+                {
+                  label: "Tanggal",
+                  value: formatDateIndo(new Date(selectedBooking.date)),
+                },
+                {
+                  label: "Jam",
+                  value: formatTimeSlot({
+                    startTime: selectedBooking.startTime,
+                    endTime: selectedBooking.endTime,
+                  }),
+                },
+                { label: "Harga", value: formatCurrency(selectedBooking.totalPrice) },
+                {
+                  label: "Dibuat",
+                  value: new Date(selectedBooking.createdAt).toLocaleString("id-ID"),
+                },
+              ].map((row) => (
+                <div
+                  key={row.label}
+                  className="flex items-baseline justify-between gap-4 px-4 py-2.5"
+                >
+                  <dt className="shrink-0 font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+                    {row.label}
+                  </dt>
+                  <dd className="text-right text-xs font-semibold text-[#141824]">{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="flex justify-end border-t border-[#141824]/20 bg-[#EAE6DD] px-4 py-3">
+              <button
+                type="button"
+                onClick={() => setSelectedBooking(null)}
+                className="rounded-[2px] border border-[#141824] bg-[#FAF9F6] px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#141824] transition-colors hover:bg-[#141824] hover:text-[#FAF9F6]"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

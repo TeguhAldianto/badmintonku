@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { formatDateInput, generateTimeSlots, formatTimeSlot, SlotStatus } from "@/lib/booking";
+import { DEFAULT_OPERATING_HOURS, generateTimeSlots } from "@/features/booking/lib/slots";
+import type { OperatingHours } from "@/features/booking/types";
+import { toCalendarDateString } from "@/shared/lib/date";
+import { formatTimeSlot } from "@/shared/lib/format";
 
 interface Court {
   id: number;
@@ -21,16 +29,22 @@ interface BlockedSlot {
   reason: string | null;
 }
 
+const FIELD_CLASS =
+  "w-full rounded-[2px] border border-[#141824]/30 bg-[#F5F3EE] px-3 py-2 text-sm text-[#141824] outline-none transition-colors focus:border-[#141824]";
+
+const LABEL_CLASS =
+  "mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#141824]";
+
 export default function AdminSchedulesPage() {
   const [courts, setCourts] = useState<Court[]>([]);
   const [selectedCourt, setSelectedCourt] = useState<string>("1");
-  const [date, setDate] = useState<string>(formatDateInput(new Date()));
+  const [date, setDate] = useState<string>(toCalendarDateString(new Date()));
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hours, setHours] = useState<OperatingHours>(DEFAULT_OPERATING_HOURS);
 
-  // Form for blocking slot
-  const [startTime, setStartTime] = useState<number>(8);
-  const [endTime, setEndTime] = useState<number>(9);
+  const [startTime, setStartTime] = useState<number>(DEFAULT_OPERATING_HOURS.open);
+  const [endTime, setEndTime] = useState<number>(DEFAULT_OPERATING_HOURS.open + 1);
   const [reason, setReason] = useState("Maintenance");
 
   const fetchData = useCallback(async () => {
@@ -38,11 +52,19 @@ export default function AdminSchedulesPage() {
     try {
       const courtsRes = await fetch("/api/courts");
       const courtsData = await courtsRes.json();
-      setCourts(courtsData.data || []);
+      setCourts((courtsData.data ?? []) as Court[]);
 
-      const res = await fetch(`/api/admin/blocked-slots?courtId=${selectedCourt}&date=${date}`);
-      const data = await res.json();
-      setBlockedSlots(data.data || []);
+      const [availabilityRes, blockedRes] = await Promise.all([
+        fetch(`/api/availability?courtId=${selectedCourt}&date=${date}`),
+        fetch(`/api/admin/blocked-slots?courtId=${selectedCourt}&date=${date}`),
+      ]);
+
+      const availabilityData = await availabilityRes.json();
+      const operatingHours = availabilityData.data?.operatingHours as OperatingHours | undefined;
+      if (operatingHours) setHours(operatingHours);
+
+      const blockedData = await blockedRes.json();
+      setBlockedSlots((blockedData.data ?? []) as BlockedSlot[]);
     } catch {
       toast.error("Gagal memuat data jadwal");
     } finally {
@@ -55,14 +77,34 @@ export default function AdminSchedulesPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleBlockSlot = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const startOptions = useMemo(
+    () => generateTimeSlots(hours).map((slot) => slot.startTime),
+    [hours]
+  );
+
+  const endOptions = useMemo(() => {
+    const options: number[] = [];
+    for (let hour = Math.max(startTime + 1, hours.open + 1); hour <= hours.close; hour++) {
+      options.push(hour);
+    }
+    return options;
+  }, [startTime, hours]);
+
+  useEffect(() => {
+    if (endTime <= startTime) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEndTime(Math.min(startTime + 1, hours.close));
+    }
+  }, [startTime, endTime, hours.close]);
+
+  const handleBlockSlot = async (event: React.FormEvent) => {
+    event.preventDefault();
     try {
       const res = await fetch("/api/admin/blocked-slots", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          courtId: parseInt(selectedCourt, 10),
+          courtId: Number.parseInt(selectedCourt, 10),
           date,
           startTime,
           endTime,
@@ -74,7 +116,7 @@ export default function AdminSchedulesPage() {
         toast.success("Jadwal berhasil diblokir");
         fetchData();
       } else {
-        toast.error(data.message);
+        toast.error(data.message ?? "Gagal memblokir jadwal");
       }
     } catch {
       toast.error("Gagal memblokir jadwal");
@@ -83,132 +125,178 @@ export default function AdminSchedulesPage() {
 
   const handleUnblockSlot = async (id: number) => {
     try {
-      const res = await fetch(`/api/admin/blocked-slots?id=${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`/api/admin/blocked-slots?id=${id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         toast.success("Blokir jadwal dilepas");
         fetchData();
       } else {
-        toast.error(data.message);
+        toast.error(data.message ?? "Gagal melepas blokir");
       }
     } catch {
       toast.error("Gagal melepas blokir");
     }
   };
 
-  const operatingSlots = generateTimeSlots();
-
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-text">Pengaturan Jadwal & Blokir Lapangan</h1>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+            Modul 06
+          </span>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+            Jadwal &amp; Blokir Lapangan
+          </h1>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+          Jam operasional {String(hours.open).padStart(2, "0")}:00–
+          {String(hours.close).padStart(2, "0")}:00 WIB
+        </span>
+      </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Blokir Slot Waktu</h2>
-            <form onSubmit={handleBlockSlot} className="space-y-4">
+      <div className="grid gap-5 lg:grid-cols-2">
+        <section className="border border-[#141824] bg-[#FAF9F6]">
+          <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+              Blokir slot waktu
+            </h2>
+          </header>
+
+          <form onSubmit={handleBlockSlot} className="space-y-3 p-4">
+            <div>
+              <span className={LABEL_CLASS}>Lapangan</span>
+              <Select value={selectedCourt} onValueChange={setSelectedCourt}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Lapangan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courts.map((court) => (
+                    <SelectItem key={court.id} value={court.id.toString()}>
+                      {court.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label htmlFor="schedule-date" className={LABEL_CLASS}>
+                Tanggal
+              </label>
+              <input
+                id="schedule-date"
+                type="date"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                className={FIELD_CLASS}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Lapangan</label>
-                <Select value={selectedCourt} onValueChange={setSelectedCourt}>
+                <span className={LABEL_CLASS}>Jam mulai</span>
+                <Select
+                  value={startTime.toString()}
+                  onValueChange={(value) => setStartTime(Number.parseInt(value, 10))}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Pilih Lapangan" />
+                    <SelectValue placeholder="Mulai" />
                   </SelectTrigger>
                   <SelectContent>
-                    {courts.map((c) => (
-                      <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                    {startOptions.map((hour) => (
+                      <SelectItem key={hour} value={hour.toString()}>
+                        {String(hour).padStart(2, "0")}:00
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
-                />
+                <span className={LABEL_CLASS}>Jam selesai</span>
+                <Select
+                  value={endTime.toString()}
+                  onValueChange={(value) => setEndTime(Number.parseInt(value, 10))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selesai" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {endOptions.map((hour) => (
+                      <SelectItem key={hour} value={hour.toString()}>
+                        {String(hour).padStart(2, "0")}:00
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Mulai</label>
-                  <Select value={startTime.toString()} onValueChange={(v) => setStartTime(parseInt(v, 10))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Mulai" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {operatingSlots.map((s) => (
-                        <SelectItem key={s.startTime} value={s.startTime.toString()}>{s.startTime}:00</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jam Selesai</label>
-                  <Select value={endTime.toString()} onValueChange={(v) => setEndTime(parseInt(v, 10))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selesai" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 14 - startTime }, (_, i) => startTime + 1 + i).map((h) => (
-                        <SelectItem key={h} value={h.toString()}>{h}:00</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div>
+              <label htmlFor="block-reason" className={LABEL_CLASS}>
+                Alasan blokir
+              </label>
+              <input
+                id="block-reason"
+                type="text"
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                className={FIELD_CLASS}
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Alasan Blokir</label>
-                <input
-                  type="text"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-lg text-sm"
-                  required
-                />
-              </div>
+            <Button type="submit" className="w-full">
+              Blokir slot
+            </Button>
+          </form>
+        </section>
 
-              <Button type="submit" className="w-full btn-primary">Blokir Slot</Button>
-            </form>
-          </CardContent>
-        </Card>
+        <section className="border border-[#141824] bg-[#FAF9F6]">
+          <header className="flex items-center justify-between border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+              Slot diblokir
+            </h2>
+            <span className="font-mono text-[10px] font-bold tabular-nums text-[#C84B31]">
+              {blockedSlots.length} entri
+            </span>
+          </header>
 
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Daftar Slot Diblokir</h2>
-            {loading ? (
-              <div className="text-center py-8">Memuat...</div>
-            ) : blockedSlots.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">Tidak ada slot yang diblokir pada tanggal ini</div>
-            ) : (
-              <div className="space-y-3">
-                {blockedSlots.map((bs) => (
-                  <div key={bs.id} className="flex items-center justify-between p-4 bg-gray-50 border rounded-lg">
-                    <div>
-                      <p className="font-semibold text-text">
-                        {formatTimeSlot({ startTime: bs.startTime, endTime: bs.endTime, status: "BLOCKED" })}
-                      </p>
-                      <p className="text-sm text-gray-600">Alasan: {bs.reason || "Maintenance"}</p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleUnblockSlot(bs.id)}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                    >
-                      Buka Blokir
-                    </Button>
+          {loading ? (
+            <p className="px-4 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]">
+              Memuat slot…
+            </p>
+          ) : blockedSlots.length === 0 ? (
+            <p className="px-4 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]">
+              Tidak ada slot diblokir pada tanggal ini
+            </p>
+          ) : (
+            <ul className="divide-y divide-[#141824]/15">
+              {blockedSlots.map((blocked) => (
+                <li
+                  key={blocked.id}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs font-bold tabular-nums text-[#141824]">
+                      {formatTimeSlot({ startTime: blocked.startTime, endTime: blocked.endTime })}
+                    </p>
+                    <p className="mt-0.5 truncate font-mono text-[10px] uppercase tracking-wide text-[#6E6A61]">
+                      {blocked.reason || "Maintenance"}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleUnblockSlot(blocked.id)}
+                  >
+                    Buka blokir
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </div>
     </div>
   );

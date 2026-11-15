@@ -1,46 +1,68 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+import { prisma } from "@/server/db/prisma";
+import { syncMidtransPayment } from "@/features/payment/server/payment.service";
+import { fail, handleRouteError, ok, readJson } from "@/shared/api/response";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: {
-        payment: true,
-        court: true,
+      select: {
+        id: true,
+        status: true,
+        totalPrice: true,
+        expiresAt: true,
+        payment: {
+          select: {
+            status: true,
+            method: true,
+            midtransTransactionId: true,
+            midtransPaymentType: true,
+          },
+        },
       },
     });
 
-    if (!booking) {
-      return NextResponse.json(
-        { success: false, message: "Booking tidak ditemukan" },
-        { status: 404 }
-      );
+    if (!booking) return fail("Booking tidak ditemukan", 404);
+
+    return ok({
+      bookingId: booking.id,
+      bookingStatus: booking.status,
+      paymentStatus: booking.payment?.status ?? "UNPAID",
+      paymentMethod: booking.payment?.method ?? null,
+      midtransTransactionId: booking.payment?.midtransTransactionId ?? null,
+      midtransPaymentType: booking.payment?.midtransPaymentType ?? null,
+      totalPrice: Number(booking.totalPrice),
+      expiresAt: booking.expiresAt,
+    });
+  } catch (error) {
+    return handleRouteError(error, "Gagal mengambil status pembayaran");
+  }
+}
+
+const syncSchema = z.object({
+  userPhone: z.string().min(1, "Nomor HP wajib diisi"),
+});
+
+/**
+ * Phone-gated status sync. Midtrans cannot call a localhost webhook, so the guest
+ * page asks Midtrans directly for the transaction status and applies it here.
+ */
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const body = await readJson<unknown>(request);
+    const parsed = syncSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return fail(parsed.error.issues[0]?.message ?? "Data tidak valid", 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        bookingId: booking.id,
-        bookingStatus: booking.status,
-        paymentStatus: booking.payment?.status || "UNPAID",
-        midtransTransactionId: booking.payment?.midtransTransactionId || null,
-        midtransPaymentType: booking.payment?.midtransPaymentType || null,
-        totalPrice: Number(booking.totalPrice),
-        expiresAt: booking.expiresAt,
-      },
-    });
-  } catch (error: unknown) {
-    console.error("Error fetching payment status:", error);
-    const message = error instanceof Error ? error.message : "Gagal mengambil status pembayaran";
-    return NextResponse.json(
-      { success: false, message },
-      { status: 500 }
-    );
+    const data = await syncMidtransPayment(id, parsed.data.userPhone);
+    return ok(data);
+  } catch (error) {
+    return handleRouteError(error, "Gagal mengecek status pembayaran");
   }
 }

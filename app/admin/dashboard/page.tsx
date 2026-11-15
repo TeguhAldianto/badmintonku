@@ -1,138 +1,133 @@
-import { prisma } from "@/lib/prisma";
-import { Card, CardContent } from "@/components/ui/card";
-import { formatDateIndo, formatTimeSlot } from "@/lib/booking";
+import Link from "next/link";
 
-async function getDashboardStats() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const [
-    bookingsToday,
-    totalBookings,
-    pending,
-    confirmed,
-    completed,
-    revenue,
-    recentBookings,
-  ] = await Promise.all([
-    prisma.booking.count({
-      where: { date: { gte: today, lt: tomorrow } },
-    }),
-    prisma.booking.count(),
-    prisma.booking.count({ where: { status: "WAITING_VERIFICATION" } }),
-    prisma.booking.count({ where: { status: "CONFIRMED" } }),
-    prisma.booking.count({ where: { status: "COMPLETED" } }),
-    prisma.booking.aggregate({
-      where: { status: "CONFIRMED" },
-      _sum: { totalPrice: true },
-    }),
-    prisma.booking.findMany({
-      take: 10,
-      orderBy: { createdAt: "desc" },
-      include: { court: true, payment: true },
-    }),
-  ]);
-
-  return {
-    bookingsToday,
-    totalBookings,
-    pending,
-    confirmed,
-    completed,
-    revenue: revenue._sum.totalPrice || 0,
-    recentBookings,
-  };
-}
+import { getDashboardStats } from "@/features/admin/server/queries";
+import { StatusBadge } from "@/shared/components/status-badge";
+import { formatCurrency, formatDateIndo } from "@/shared/lib/format";
 
 export default async function AdminDashboard() {
   const stats = await getDashboardStats();
 
-  return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-text">Dashboard Admin</h1>
+  const cards = [
+    { label: "Booking hari ini", value: stats.bookingsToday, accent: "bg-[#141824]" },
+    { label: "Total booking", value: stats.totalBookings, accent: "bg-[#141824]" },
+    { label: "Menunggu verifikasi", value: stats.pending, accent: "bg-[#C84B31]" },
+    { label: "Dikonfirmasi", value: stats.confirmed, accent: "bg-[#1E3A8A]" },
+    { label: "Selesai", value: stats.completed, accent: "bg-[#1E3A8A]" },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Booking Hari Ini</h3>
-            <p className="text-3xl font-bold text-primary">{stats.bookingsToday}</p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Total Booking</h3>
-            <p className="text-3xl font-bold text-text">{stats.totalBookings}</p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Menunggu Verifikasi</h3>
-            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Dikonfirmasi</h3>
-            <p className="text-3xl font-bold text-green-600">{stats.confirmed}</p>
-          </CardContent>
-        </Card>
-        <Card className="card-custom">
-          <CardContent className="p-6">
-            <h3 className="text-sm font-medium text-gray-500 mb-1">Pendapatan</h3>
-            <p className="text-3xl font-bold text-text">
-              Rp {Number(stats.revenue).toLocaleString("id-ID")}
-            </p>
-          </CardContent>
-        </Card>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+            Ringkasan operasional
+          </span>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+            Dashboard Admin
+          </h1>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+          Data langsung dari basis data arena
+        </span>
       </div>
 
-      <div className="bg-white rounded-xl border border-border overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-xl font-semibold text-text">Booking Terbaru</h2>
+      <div className="flex flex-wrap gap-px border border-[#141824] bg-[#141824]/30">
+        {cards.map((card) => (
+          <div
+            key={card.label}
+            className="relative flex-1 basis-[calc(50%-1px)] bg-[#FAF9F6] p-4 lg:basis-0"
+          >
+            <span className={`absolute inset-y-0 left-0 w-[3px] ${card.accent}`} aria-hidden="true" />
+            <h2 className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              {card.label}
+            </h2>
+            <p className="mt-1.5 font-mono text-2xl font-bold tabular-nums text-[#141824]">
+              {card.value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 border border-[#141824] bg-[#EAE6DD] px-4 py-3.5">
+        <div>
+          <h2 className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#6E6A61]">
+            Total pendapatan (dikonfirmasi + selesai)
+          </h2>
+          <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#141824] sm:text-2xl">
+            {formatCurrency(stats.revenue)}
+          </p>
         </div>
+        <Link
+          href="/admin/reports"
+          className="rounded-[2px] border border-[#141824] bg-[#FAF9F6] px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#141824] transition-colors hover:bg-[#141824] hover:text-[#FAF9F6]"
+        >
+          Buka laporan
+        </Link>
+      </div>
+
+      <section className="border border-[#141824] bg-[#FAF9F6]">
+        <header className="flex items-center justify-between border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+          <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+            Booking terbaru
+          </h2>
+          <Link
+            href="/admin/bookings"
+            className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#1E3A8A] hover:underline"
+          >
+            Lihat semua
+          </Link>
+        </header>
+
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kode</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lapangan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jam</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
+          <table className="w-full min-w-[720px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-[#141824]/25 bg-[#F5F3EE]">
+                {["Kode", "Pemesan", "Lapangan", "Tanggal", "Status", "Harga"].map((header) => (
+                  <th
+                    key={header}
+                    className="whitespace-nowrap px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-wider text-[#6E6A61]"
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {stats.recentBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
-                    Belum ada booking
+                  <td
+                    colSpan={6}
+                    className="px-3 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]"
+                  >
+                    Belum ada booking tercatat
                   </td>
                 </tr>
               ) : (
-                stats.recentBookings.map((b) => (
-                  <tr key={b.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-mono text-sm">{b.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4">{b.userName} ({b.userPhone})</td>
-                    <td className="px-6 py-4">{b.court.name}</td>
-                    <td className="px-6 py-4">{formatDateIndo(new Date(b.date))}</td>
-                    <td className="px-6 py-4">{formatTimeSlot({ startTime: b.startTime, endTime: b.endTime, status: "BOOKED" })}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        b.status === "PENDING_PAYMENT" ? "bg-gray-100 text-gray-700" :
-                        b.status === "WAITING_VERIFICATION" ? "bg-yellow-100 text-yellow-800" :
-                        b.status === "CONFIRMED" ? "bg-green-100 text-green-800" :
-                        b.status === "COMPLETED" ? "bg-blue-100 text-blue-800" :
-                        "bg-red-100 text-red-800"
-                      }`}>
-                        {b.status}
+                stats.recentBookings.map((booking) => (
+                  <tr
+                    key={booking.id}
+                    className="border-b border-[#141824]/10 last:border-0 hover:bg-[#EAE6DD]/50"
+                  >
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] text-[#141824]">
+                      {booking.id.slice(0, 8)}
+                    </td>
+                    <td className="px-3 py-2.5 text-xs text-[#141824]">
+                      <span className="block font-semibold">{booking.userName}</span>
+                      <span className="font-mono text-[10px] text-[#6E6A61]">
+                        {booking.userPhone}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-medium">
-                      Rp {Number(b.totalPrice).toLocaleString("id-ID")}
+                    <td className="whitespace-nowrap px-3 py-2.5 text-xs text-[#141824]">
+                      {booking.court.name}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[10px] text-[#6E6A61]">
+                      {formatDateIndo(booking.date)}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5">
+                      <StatusBadge status={booking.status} />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] font-semibold tabular-nums text-[#141824]">
+                      {formatCurrency(Number(booking.totalPrice))}
                     </td>
                   </tr>
                 ))
@@ -140,7 +135,7 @@ export default async function AdminDashboard() {
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

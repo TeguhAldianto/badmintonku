@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/server/db/prisma";
+import { getPricePerHour } from "@/features/booking/server/availability.service";
+import { handleRouteError, ok } from "@/shared/api/response";
 
 export async function GET() {
   try {
-    const courts = await prisma.court.findMany({
-      orderBy: { id: "asc" },
-    });
-    return NextResponse.json({ success: true, data: courts });
-  } catch {
-    return NextResponse.json(
-      { success: false, message: "Gagal mengambil data lapangan" },
-      { status: 500 }
-    );
+    const [courts, pricePerHour] = await Promise.all([
+      prisma.court.findMany({ orderBy: { id: "asc" } }),
+      getPricePerHour(),
+    ]);
+
+    return ok(courts.map((court) => ({ ...court, pricePerHour })));
+  } catch (error) {
+    return handleRouteError(error, "Gagal mengambil data lapangan");
   }
 }

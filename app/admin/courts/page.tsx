@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -17,7 +16,7 @@ export default function AdminCourtsPage() {
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", description: "", price: 50000, isActive: true });
+  const [editForm, setEditForm] = useState({ name: "", description: "", isActive: true });
 
   const fetchCourts = useCallback(async () => {
     setLoading(true);
@@ -42,7 +41,6 @@ export default function AdminCourtsPage() {
     setEditForm({
       name: court.name,
       description: court.description || "",
-      price: 50000, // Default price
       isActive: court.isActive,
     });
   };
@@ -87,85 +85,134 @@ export default function AdminCourtsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-text">Manajemen Lapangan</h1>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+        <div>
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+            Modul 05
+          </span>
+          <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
+            Manajemen Lapangan
+          </h1>
+        </div>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+          {courts.filter((court) => court.isActive).length} aktif · {courts.length} total
+        </span>
+      </div>
 
-      <Card className="card-custom">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center">Memuat...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Deskripsi</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {courts.map((court) => (
-                    <tr key={court.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-mono text-sm">{court.id}</td>
-                      <td className="px-6 py-4 font-medium">{court.name}</td>
-                      <td className="px-6 py-4 text-gray-600 max-w-xs truncate">{court.description || "-"}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          court.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                        }`}>
-                          {court.isActive ? "Aktif" : "Tidak Aktif"}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {editingCourt?.id === court.id ? (
-                          <div className="flex gap-2">
-                            <Input
-                              value={editForm.name}
-                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                              placeholder="Nama"
-                              className="w-40"
-                            />
-                            <Input
-                              value={editForm.description}
-                              onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                              placeholder="Deskripsi"
-                              className="w-48"
-                            />
-                            <Input
-                              type="number"
-                              value={editForm.price}
-                              onChange={(e) => setEditForm({ ...editForm, price: parseInt(e.target.value) || 0 })}
-                              placeholder="Harga/jam"
-                              className="w-32"
-                            />
-                            <Button size="sm" onClick={handleSave}>Simpan</Button>
-                            <Button variant="outline" size="sm" onClick={() => setEditingCourt(null)}>Batal</Button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEdit(court)}>Edit</Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleToggleActive(court)}
-                              className={court.isActive ? "text-red-600 border-red-600 hover:bg-red-50" : "text-green-600 border-green-600 hover:bg-green-50"}
-                            >
-                              {court.isActive ? "Nonaktifkan" : "Aktifkan"}
-                            </Button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+      <section className="border border-[#141824] bg-[#FAF9F6]">
+        {loading ? (
+          <p className="px-4 py-10 text-center font-mono text-[11px] uppercase tracking-wider text-[#6E6A61]">
+            Memuat data lapangan…
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-[#141824] bg-[#EAE6DD]">
+                  {["ID", "Nama", "Deskripsi", "Status", "Aksi"].map((header) => (
+                    <th
+                      key={header}
+                      className="whitespace-nowrap px-3 py-2 font-mono text-[9px] font-bold uppercase tracking-wider text-[#141824]"
+                    >
+                      {header}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </tr>
+              </thead>
+              <tbody>
+                {courts.map((court) => (
+                  <tr
+                    key={court.id}
+                    className="border-b border-[#141824]/10 last:border-0 hover:bg-[#EAE6DD]/40"
+                  >
+                    <td className="px-3 py-2.5 font-mono text-[11px] text-[#6E6A61]">
+                      {court.id.toString().padStart(2, "0")}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {editingCourt?.id === court.id ? (
+                        <Input
+                          value={editForm.name}
+                          onChange={(event) =>
+                            setEditForm({ ...editForm, name: event.target.value })
+                          }
+                          placeholder="Nama lapangan"
+                          className="h-8 w-40 text-xs"
+                        />
+                      ) : (
+                        <span className="text-xs font-semibold text-[#141824]">{court.name}</span>
+                      )}
+                    </td>
+                    <td className="max-w-xs px-3 py-2.5">
+                      {editingCourt?.id === court.id ? (
+                        <Input
+                          value={editForm.description}
+                          onChange={(event) =>
+                            setEditForm({ ...editForm, description: event.target.value })
+                          }
+                          placeholder="Deskripsi"
+                          className="h-8 w-56 text-xs"
+                        />
+                      ) : (
+                        <span className="block truncate text-[11px] text-[#6E6A61]">
+                          {court.description || "-"}
+                        </span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5">
+                      <span
+                        className={
+                          court.isActive
+                            ? "rounded-[2px] border border-[#1E3A8A]/40 bg-[#1E3A8A]/10 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[#1E3A8A]"
+                            : "slot-occupied rounded-[2px] border border-[#141824]/25 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-[#6E6A61]"
+                        }
+                      >
+                        {court.isActive ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {editingCourt?.id === court.id ? (
+                        <div className="flex gap-1.5">
+                          <Button size="sm" variant="navy" onClick={handleSave}>
+                            Simpan
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEditingCourt(null)}
+                          >
+                            Batal
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-1.5">
+                          <Button size="sm" variant="outline" onClick={() => handleEdit(court)}>
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={court.isActive ? "destructive" : "secondary"}
+                            onClick={() => handleToggleActive(court)}
+                          >
+                            {court.isActive ? "Nonaktifkan" : "Aktifkan"}
+                          </Button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <div className="border border-[#141824]/25 bg-[#EAE6DD] px-4 py-3">
+        <p className="font-mono text-[10px] uppercase leading-relaxed tracking-wide text-[#6E6A61]">
+          Tarif per jam tidak diatur per lapangan. Nilai harga tunggal dikelola pada menu Pengaturan
+          melalui kunci konfigurasi harga.
+        </p>
+      </div>
     </div>
   );
 }

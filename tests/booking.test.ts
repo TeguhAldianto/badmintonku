@@ -1,61 +1,122 @@
 import { describe, test, expect } from "vitest";
-import { createBooking } from "../services/booking.service";
-import { prisma } from "@/lib/prisma";
+import { BookingStatus, PaymentStatus } from "@prisma/client";
+import { createBooking, normalizePhone } from "@/features/booking/server/booking.service";
+import { prisma } from "@/server/db/prisma";
 
-describe("Booking Engine - Concurrent Booking Race Condition", () => {
-  test("User A and User B booking the same court and slot simultaneously results in only one success", async () => {
-    const testDate = new Date("2025-12-31T00:00:00.000Z");
-    const courtId = 1;
+/** A UTC-midnight date `daysAhead` days in the future (never a hardcoded past date). */
+function futureDateOnly(daysAhead = 7): Date {
+  const now = new Date();
+  const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return new Date(todayUtc + daysAhead * 24 * 60 * 60 * 1000);
+}
+
+const COURT_ID = 1;
+
+async function cleanup(date: Date, startTime: number, endTime: number) {
+  await prisma.payment.deleteMany({
+    where: { booking: { courtId: COURT_ID, date, startTime, endTime } },
+  });
+  await prisma.booking.deleteMany({ where: { courtId: COURT_ID, date, startTime, endTime } });
+}
+
+describe("normalizePhone", () => {
+  test("normalizes Indonesian phone formats to 08...", () => {
+    expect(normalizePhone("08123456789")).toBe("08123456789");
+    expect(normalizePhone("+628123456789")).toBe("08123456789");
+    expect(normalizePhone("628123456789")).toBe("08123456789");
+    expect(normalizePhone(" 0812-3456-789 ")).toBe("08123456789");
+  });
+});
+
+describe("Booking Engine - Concurrency & Slot Blocking", () => {
+  test("two simultaneous bookings for the same slot result in exactly one success", async () => {
+    const testDate = futureDateOnly(7);
     const startTime = 10;
     const endTime = 11;
 
-    await prisma.booking.deleteMany({
-      where: {
-        courtId,
+    await cleanup(testDate, startTime, endTime);
+
+    const results = await Promise.allSettled([
+      createBooking({
+        courtId: COURT_ID,
         date: testDate,
         startTime,
         endTime,
-      },
-    });
-
-    // Create promises that start at the same time
-    const promiseA = createBooking({
-      courtId,
-      date: testDate,
-      startTime,
-      endTime,
-      userName: "User A",
-      userPhone: "08111111111",
-    });
-
-    const promiseB = createBooking({
-      courtId,
-      date: testDate,
-      startTime,
-      endTime,
-      userName: "User B",
-      userPhone: "08222222222",
-    });
-
-    // Execute concurrently
-    const results = await Promise.allSettled([promiseA, promiseB]);
-
-    const successes = results.filter((r) => r.status === "fulfilled");
-    const failures = results.filter((r) => r.status === "rejected");
-
-    // At least one must fail (double booking prevention)
-    expect(successes.length + failures.length).toBe(2);
-    expect(failures.length).toBeGreaterThanOrEqual(1);
-    expect(successes.length).toBeLessThanOrEqual(1);
-
-    // Clean up
-    await prisma.booking.deleteMany({
-      where: {
-        courtId,
+        userName: "User A",
+        userPhone: "08111111111",
+      }),
+      createBooking({
+        courtId: COURT_ID,
         date: testDate,
         startTime,
         endTime,
+        userName: "User B",
+        userPhone: "08222222222",
+      }),
+    ]);
+
+    const successes = results.filter((result) => result.status === "fulfilled");
+    const failures = results.filter((result) => result.status === "rejected");
+
+    expect(successes).toHaveLength(1);
+    expect(failures).toHaveLength(1);
+
+    const rows = await prisma.booking.findMany({
+      where: { courtId: COURT_ID, date: testDate, startTime, endTime },
+    });
+    expect(rows).toHaveLength(1);
+
+    await cleanup(testDate, startTime, endTime);
+  });
+
+  test("a CONFIRMED booking blocks its slot even after the payment window has passed", async () => {
+    const testDate = futureDateOnly(8);
+    const startTime = 12;
+    const endTime = 13;
+
+    await cleanup(testDate, startTime, endTime);
+
+    // Regression guard for the double-booking bug: expiresAt is in the past but the
+    // booking is CONFIRMED, so the slot must stay occupied.
+    await prisma.booking.create({
+      data: {
+        courtId: COURT_ID,
+        date: testDate,
+        startTime,
+        endTime,
+        userName: "Confirmed User",
+        userPhone: "08133333333",
+        totalPrice: 50_000,
+        status: BookingStatus.CONFIRMED,
+        expiresAt: new Date(Date.now() - 60 * 60 * 1000),
+        payment: { create: { amount: 50_000, status: PaymentStatus.PAID } },
       },
     });
+
+    await expect(
+      createBooking({
+        courtId: COURT_ID,
+        date: testDate,
+        startTime,
+        endTime,
+        userName: "Late User",
+        userPhone: "08144444444",
+      })
+    ).rejects.toThrow("Slot telah dibooking oleh orang lain");
+
+    await cleanup(testDate, startTime, endTime);
+  });
+
+  test("rejects a booking on a past date", async () => {
+    await expect(
+      createBooking({
+        courtId: COURT_ID,
+        date: new Date("2020-01-01T00:00:00.000Z"),
+        startTime: 10,
+        endTime: 11,
+        userName: "Past User",
+        userPhone: "08155555555",
+      })
+    ).rejects.toThrow("tanggal yang sudah lewat");
   });
 });
