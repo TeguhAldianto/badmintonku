@@ -55,7 +55,7 @@ export function ReservationReceipt({
         <div className="flex items-center justify-between bg-[#141824] px-5 py-4 text-[#FAF9F6]">
           <div>
             <span className="block font-mono text-[10px] uppercase tracking-[0.2em] text-[#EAE6DD]/70">
-              BadmintonKu · Dokumen #01
+              OMAH GUYUB · Dokumen #01
             </span>
             <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight">STRUK RESERVASI</h2>
           </div>

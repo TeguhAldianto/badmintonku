@@ -148,7 +148,7 @@ export async function notifyBookingCreated(
     target: booking.userPhone,
     message: NOTIFICATION_TEMPLATES.BOOKING_CREATED({
       ...bookingContext(booking),
-      paymentInstructions: booking.paymentInstructions ?? "Transfer ke BCA 1234567890 a.n. BadmintonKu",
+       paymentInstructions: booking.paymentInstructions ?? "Transfer ke BCA 1234567890 a.n. OMAH GUYUB",
     }),
     type: "BOOKING_CREATED",
     referenceId: booking.id,

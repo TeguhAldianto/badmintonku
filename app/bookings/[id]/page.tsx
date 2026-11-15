@@ -417,7 +417,7 @@ export default function BookingConfirmationPage({ params }: { params: Promise<{ 
                 Unggah bukti transfer manual
               </h3>
               <p className="mt-1 text-xs leading-relaxed text-[#6E6A61]">
-                Transfer ke BCA 1234567890 a.n. BadmintonKu, lalu unggah bukti di bawah ini.
+                Transfer ke BCA 1234567890 a.n. OMAH GUYUB, lalu unggah bukti di bawah ini.
               </p>
 
               <form onSubmit={handleProofUpload} className="mt-3 space-y-2.5">

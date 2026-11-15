@@ -13,7 +13,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Jam: ${data.time}\n\n` +
     `Silakan lakukan pembayaran:\n${data.paymentInstructions}\n\n` +
     `Bukti transfer bisa diupload di aplikasi.\n` +
-    `Terima kasih! - BadmintonKu`,
+    `Terima kasih! - OMAH GUYUB`,
 
   PAYMENT_SUBMITTED: (data: { bookingCode: string; courtName: string; date: string; time: string }) =>
     `💰 *Bukti Pembayaran Diterima*\n\n` +
@@ -23,7 +23,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Jam: ${data.time}\n\n` +
     `Pembayaran Anda sedang diverifikasi oleh admin.\n` +
     `Anda akan mendapat notifikasi setelah diverifikasi.\n` +
-    `- BadmintonKu`,
+    `- OMAH GUYUB`,
 
   PAYMENT_APPROVED: (data: { bookingCode: string; courtName: string; date: string; time: string }) =>
     `✅ *Pembayaran Dikonfirmasi!*\n\n` +
@@ -33,7 +33,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Jam: ${data.time}\n\n` +
     `Booking Anda telah dikonfirmasi.\n` +
     `Silakan datang tepat waktu untuk bermain.\n` +
-    `Terima kasih! - BadmintonKu`,
+    `Terima kasih! - OMAH GUYUB`,
 
   PAYMENT_REJECTED: (data: {
     bookingCode: string;
@@ -49,7 +49,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Jam: ${data.time}\n\n` +
     `Alasan: ${data.reason}\n\n` +
     `Silakan buat booking baru atau hubungi admin.\n` +
-    `- BadmintonKu`,
+    `- OMAH GUYUB`,
 
   BOOKING_CANCELLED: (data: {
     bookingCode: string;
@@ -65,7 +65,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Jam: ${data.time}\n\n` +
     `Dibatalkan oleh: ${data.cancelledBy}\n\n` +
     `Jika ini bukan keinginan Anda, silakan hubungi admin.\n` +
-    `- BadmintonKu`,
+    `- OMAH GUYUB`,
 
   BOOKING_EXPIRED: (data: { bookingCode: string; courtName: string; date: string; time: string }) =>
     `⏰ *Booking Kadaluarsa*\n\n` +
@@ -76,7 +76,7 @@ export const NOTIFICATION_TEMPLATES = {
     `Waktu pembayaran telah habis (1 jam).\n` +
     `Slot telah dibuka untuk user lain.\n` +
     `Silakan buat booking baru jika masih ingin bermain.\n` +
-    `- BadmintonKu`,
+    `- OMAH GUYUB`,
 } as const;
 
 export type NotificationType = keyof typeof NOTIFICATION_TEMPLATES;

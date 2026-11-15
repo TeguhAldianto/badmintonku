@@ -3,7 +3,7 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export const PAYMENT_INSTRUCTIONS: Record<PaymentMethod, string> = {
   DIRECT: "Bayar langsung ke admin saat check-in",
-  BANK_TRANSFER: "Transfer ke BCA 1234567890 a.n. BadmintonKu",
+  BANK_TRANSFER: "Transfer ke BCA 1234567890 a.n. OMAH GUYUB",
   QRIS: "Scan QRIS yang tersedia di halaman pembayaran",
 };
 

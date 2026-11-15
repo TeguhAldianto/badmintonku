@@ -47,7 +47,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-navy/20 pt-4 font-mono text-[10px] uppercase tracking-wider text-slate-muted sm:flex-row sm:items-center sm:justify-between">
-          <span>© 2026 BadmintonKu · Dokumen #01</span>
+          <span>© 2026 OMAH GUYUB · Dokumen #01</span>
           <span>Standar Peralatan BWF · Verifikasi Bukti Transfer</span>
         </div>
       </div>

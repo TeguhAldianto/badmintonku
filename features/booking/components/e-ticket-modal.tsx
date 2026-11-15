@@ -119,7 +119,7 @@ export function ETicketModal({
             <div className="flex items-start justify-between gap-3 bg-[#141824] px-5 py-4 text-[#FAF9F6]">
               <div>
                 <span className="block font-mono text-[10px] uppercase tracking-[0.2em] text-[#C84B31]">
-                  Bukti reservasi sah · BadmintonKu
+                   Bukti reservasi sah · OMAH GUYUB
                 </span>
                 <h3 id="e-ticket-heading" className="mt-0.5 font-display text-xl font-bold">
                   E-TICKET ARENA
