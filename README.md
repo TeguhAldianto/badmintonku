@@ -1,37 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OMAH GUYUB — Platform Reservasi Lapangan Badminton
 
-## Getting Started
+**OMAH GUYUB** adalah platform web booking lapangan badminton modern yang dirancang khusus untuk mendigitalisasi proses pemesanan, pengecekan jadwal real-time, pembayaran otomatis/manual, serta verifikasi operasional lapangan secara profesional.
 
-First, run the development server:
+---
+
+## 🚀 Tech Stack
+
+- **Framework:** Next.js 16.3+ (App Router, React 19, Turbopack)
+- **Database & ORM:** MySQL + Prisma 6 (dengan transaksi serializable & raw row locking)
+- **Autentikasi:** NextAuth v5 (Beta)
+- **Styling:** Tailwind CSS v4 + Radix UI
+- **Integrasi Pembayaran:** Midtrans Snap API & Webhook
+- **Notifikasi:** Fonnte WhatsApp Gateway API
+- **Testing:** Vitest (61+ pengujian terintegrasi)
+
+---
+
+## 🛠️ Fitur Utama
+
+1. **Sistem Booking & Ketersediaan Real-Time**
+   - Matriks jadwal per jam (08:00 - 21:00) untuk 3 lapangan.
+   - Pencegahan *double-booking* (race condition) menggunakan isolasi transaksi Prisma interaktif dan `SELECT ... FOR UPDATE`.
+   - Perhitungan harga mutlak server-side berdasarkan tabel konfigurasi.
+2. **Pembayaran & Integrasi Gateway**
+   - Mendukung pembayaran otomatis via Midtrans Snap dengan verifikasi tanda tangan SHA-512 webhook.
+   - Mendukung unggah bukti transfer manual dengan validasi nomor telepon tamu.
+3. **Dashboard Admin Komprehensif**
+   - Manajemen verifikasi pembayaran & status pemesanan.
+   - Kontrol jadwal & pemblokiran slot (*maintenance* / libur).
+   - Laporan transaksi harian & bulanan.
+4. **Notifikasi WhatsApp Otomatis**
+   - Kirim pesan instan via Fonnte untuk instruksi pembayaran, konfirmasi, penolakan, hingga pembatalan.
+
+---
+
+## 📦 Perintah Pengembangan (Commands)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev            # Menjalankan development server (Next.js)
+npm run build          # Membuat build produksi
+npm run start          # Menjalankan server produksi
+npm run lint           # Menjalankan ESLint
+npx tsc --noEmit       # Memeriksa tipe TypeScript
+npx vitest run         # Menjalankan rangkaian unit & integration test
+npx prisma db seed     # Melakukan seeding data awal database
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚙️ Konfigurasi Environment (`.env`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Buat file `.env` di root direktori dengan contoh konfigurasi berikut:
 
-## Learn More
+```env
+DATABASE_URL="mysql://user:password@localhost:3306/omah_guyub"
+AUTH_SECRET="your-nextauth-secret-key"
+MIDTRANS_SERVER_KEY="your-midtrans-server-key"
+MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
+NEXT_PUBLIC_MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
+MIDTRANS_IS_PRODUCTION="false"
+FONNTE_API_KEY="your-fonnte-whatsapp-api-key"
+CRON_SECRET="your-cron-secret-key"
+APP_TIME_ZONE="Asia/Jakarta"
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# badmintonku
+## 📄 Lisensi
+Hak Cipta © 2026 OMAH GUYUB. Seluruh hak cipta dilindungi undang-undang.
