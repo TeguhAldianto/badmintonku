@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -21,6 +21,7 @@ export function SiteHeader() {
   const { data: session, status } = useSession();
   const [ticketCount, setTicketCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sync = () => setTicketCount(readLocalTickets().length);
@@ -35,6 +36,20 @@ export function SiteHeader() {
     };
   }, [pathname]);
 
+  // Drawer behaves like a real dialog: Escape closes it and focus moves inside.
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    mobileNavRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
   // Panel admin dan halaman login memakai shell-nya sendiri.
   if (pathname.startsWith("/admin") || pathname === "/login") return null;
 
@@ -44,8 +59,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-navy bg-chalk/95 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-14 items-center justify-between gap-3 sm:h-16">
-          <Link href="/" className="group flex items-center gap-3 focus:outline-none">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-navy bg-navy text-paper transition-colors group-hover:border-text-terracotta group-hover:bg-text-terracotta">
+          <Link href="/" className="group flex items-center gap-3 focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-navy bg-navy text-paper transition-colors group-hover:border-terracotta group-hover:bg-terracotta">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 20H20" stroke="currentColor" strokeWidth="2" />
                 <path
@@ -60,7 +75,7 @@ export function SiteHeader() {
               <span className="font-display text-base font-bold tracking-tight text-navy sm:text-lg">
                 OMAH GUYUB
               </span>
-              <span className="mt-1 hidden font-mono text-[9px] uppercase tracking-[0.18em] text-slate-muted sm:block">
+              <span className="mt-1 hidden font-mono text-[11px] uppercase tracking-[0.18em] text-slate-muted sm:block">
                 ARENA BULUTANGKIS STANDAR BWF
               </span>
             </span>
@@ -98,7 +113,7 @@ export function SiteHeader() {
                     {session.user.name ?? "Admin"}
                   </span>
                   {isAdmin ? (
-                    <span className="rounded-[2px] bg-cobalt px-1 py-0.5 font-mono text-[9px] font-bold uppercase text-paper">
+                    <span className="rounded-[2px] bg-cobalt px-1 py-0.5 font-mono text-[11px] font-bold uppercase text-paper">
                       Admin
                     </span>
                   ) : null}
@@ -106,7 +121,7 @@ export function SiteHeader() {
                 {isAdmin ? (
                   <Link
                     href="/admin/dashboard"
-                    className="rounded-[2px] border border-navy/30 bg-paper px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-navy hover:border-navy"
+                    className="rounded-[2px] border border-navy/30 bg-paper px-2.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-navy hover:border-navy"
                   >
                     Panel
                   </Link>
@@ -114,7 +129,7 @@ export function SiteHeader() {
                 <button
                   type="button"
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="flex items-center gap-1.5 rounded-[2px] border border-navy/30 bg-paper px-2.5 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-muted transition-colors hover:border-text-terracotta hover:text-terracotta"
+                  className="flex items-center gap-1.5 rounded-[2px] border border-navy/30 bg-paper px-2.5 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-muted transition-colors hover:border-terracotta hover:text-terracotta"
                 >
                   <LogOut className="h-3 w-3" strokeWidth={1.5} />
                   Keluar
@@ -125,17 +140,17 @@ export function SiteHeader() {
                 href="/login"
                 className="hidden rounded-[2px] border border-navy/30 bg-paper px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-navy transition-colors hover:border-navy sm:inline-flex"
               >
-                Masuk
+                Masuk Admin
               </Link>
             )}
 
             <Link
               href="/bookings"
-              className="inline-flex items-center gap-2 rounded-[2px] border border-navy bg-navy px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-paper transition-colors hover:border-text-terracotta hover:bg-text-terracotta"
+              className="inline-flex items-center gap-2 rounded-[2px] border border-navy bg-navy px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-paper transition-colors hover:border-terracotta hover:bg-terracotta"
             >
               <Ticket className="h-3.5 w-3.5" strokeWidth={1.5} />
               <span className="hidden whitespace-nowrap sm:inline">Tiket Saya</span>
-              <span className="rounded-[2px] bg-paper px-1.5 py-0.5 font-mono text-[10px] font-bold text-navy">
+              <span className="rounded-[2px] bg-paper px-1.5 py-0.5 font-mono text-[11px] font-bold text-navy">
                 {ticketCount}
               </span>
             </Link>
@@ -145,7 +160,7 @@ export function SiteHeader() {
               onClick={() => setOpen((value) => !value)}
               aria-label={open ? "Tutup menu" : "Buka menu"}
               aria-expanded={open}
-              className="flex h-9 w-9 items-center justify-center rounded-[2px] border border-navy/30 bg-paper text-navy lg:hidden"
+              className="flex h-11 w-11 items-center justify-center rounded-[2px] border border-navy/30 bg-paper text-navy lg:hidden"
             >
               {open ? <X className="h-4 w-4" strokeWidth={1.5} /> : <Menu className="h-4 w-4" strokeWidth={1.5} />}
             </button>
@@ -154,14 +169,14 @@ export function SiteHeader() {
       </div>
 
       {open ? (
-        <div className="border-t border-navy/20 bg-paper lg:hidden">
+        <div ref={mobileNavRef} className="border-t border-navy/20 bg-paper lg:hidden">
           <nav className="mx-auto grid max-w-7xl gap-px px-4 py-3" aria-label="Navigasi seluler">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-between border-b border-navy/10 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-navy last:border-0"
+                className="flex min-h-11 items-center justify-between border-b border-navy/10 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-navy last:border-0"
               >
                 {link.label}
                 <span aria-hidden="true">→</span>
@@ -171,7 +186,7 @@ export function SiteHeader() {
               <Link
                 href="/admin/dashboard"
                 onClick={() => setOpen(false)}
-                className="mt-2 rounded-[2px] border border-cobalt bg-cobalt px-3 py-2 text-left font-mono text-[11px] font-bold uppercase tracking-wider text-paper"
+                className="mt-2 flex min-h-11 items-center rounded-[2px] border border-cobalt bg-cobalt px-3 py-2 text-left font-mono text-[11px] font-bold uppercase tracking-wider text-paper"
               >
                 Panel admin
               </Link>
@@ -180,7 +195,7 @@ export function SiteHeader() {
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="mt-2 rounded-[2px] border border-text-terracotta px-3 py-2 text-left font-mono text-[11px] font-bold uppercase tracking-wider text-text-terracotta"
+                className="mt-2 flex min-h-11 items-center rounded-[2px] border border-terracotta px-3 py-2 text-left font-mono text-[11px] font-bold uppercase tracking-wider text-terracotta"
               >
                 Keluar dari sesi
               </button>
@@ -188,9 +203,9 @@ export function SiteHeader() {
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="mt-2 rounded-[2px] border border-navy bg-navy px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-paper"
+                className="mt-2 flex min-h-11 items-center rounded-[2px] border border-navy bg-navy px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-paper"
               >
-                Masuk admin
+                Masuk Admin
               </Link>
             )}
           </nav>

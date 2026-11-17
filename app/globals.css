@@ -1,14 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/*
+ * Palette colours are purposefully deeper than the original brand swatches so that
+ * small text meets WCAG 2.2 AA (>= 4.5:1) on chalk/birch/paper surfaces.
+ * --color-terracotta-bright is reserved for text placed on the navy surfaces.
+ */
 @theme inline {
   --color-chalk: #F5F3EE;
   --color-birch: #EAE6DD;
   --color-paper: #FAF9F6;
   --color-navy: #141824;
-  --color-terracotta: #C84B31;
+  --color-terracotta: #B23F27;
+  --color-terracotta-bright: #E8775E;
   --color-cobalt: #1E3A8A;
-  --color-slate-muted: #6E6A61;
+  --color-slate-muted: #5C5850;
 
   --font-display: 'Space Grotesk', sans-serif;
   --font-sans: 'Plus Jakarta Sans', sans-serif;
@@ -36,6 +41,12 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
     letter-spacing: -0.03em;
+  }
+
+  /* Visible keyboard focus for every interactive element (WCAG 2.4.7 / 1.4.11). */
+  :focus-visible {
+    outline: 2px solid var(--color-cobalt);
+    outline-offset: 2px;
   }
 }
 

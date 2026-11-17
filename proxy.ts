@@ -2,23 +2,32 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 
-// Simple in-memory rate limiter
+// Simple in-memory rate limiter with periodic cleanup
 const limiter = new Map<string, { count: number; resetAt: number }>();
+let lastCleanup = Date.now();
 
 function rateLimitCheck(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
 
   // Apply rate limiting to sensitive routes
   const isSensitiveRoute = pathname.startsWith("/api/bookings") ||
-    pathname.startsWith("/api/availability") ||
-    pathname.startsWith("/api/admin") ||
-    pathname.startsWith("/api/payments");
+                           pathname.startsWith("/api/availability") ||
+                           pathname.startsWith("/api/admin") ||
+                           pathname.startsWith("/api/payments");
 
   if (isSensitiveRoute) {
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "anonymous";
     const now = Date.now();
+    // Periodic cleanup of expired rate limit entries every 5 minutes
+    if (now - lastCleanup > 5 * 60 * 1000) {
+      for (const [key, val] of limiter.entries()) {
+        if (now > val.resetAt) limiter.delete(key);
+      }
+      lastCleanup = now;
+    }
+
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+               request.headers.get("x-real-ip") || 
+               "anonymous";
     const windowMs = 60 * 1000; // 1 minute window
     const maxRequests = 30; // 30 requests per minute
 

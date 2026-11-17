@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[2px] font-mono text-xs font-bold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1E3A8A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F5F3EE] disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[2px] font-mono text-xs font-bold uppercase tracking-wider transition-colors focus-visible:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-2 focus-visible:ring-offset-chalk disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-[#C84B31] text-[#FAF9F6] border border-[#141824] hover:bg-[#141824]",
-        navy: "bg-[#141824] text-[#FAF9F6] border border-[#141824] hover:bg-[#C84B31] hover:border-[#C84B31]",
+          "bg-terracotta text-paper border border-navy hover:bg-navy",
+        navy: "bg-navy text-paper border border-navy hover:bg-terracotta hover:border-terracotta",
         outline:
-          "bg-[#FAF9F6] text-[#141824] border border-[#141824]/30 hover:border-[#141824] hover:bg-[#EAE6DD]",
+          "bg-paper text-navy border border-navy/30 hover:border-navy hover:bg-birch",
         secondary:
-          "bg-[#EAE6DD] text-[#141824] border border-[#141824]/30 hover:bg-[#FAF9F6] hover:border-[#141824]",
-        ghost: "text-[#141824] hover:bg-[#EAE6DD] border border-transparent",
+          "bg-birch text-navy border border-navy/30 hover:bg-paper hover:border-navy",
+        ghost: "text-navy hover:bg-birch border border-transparent",
         destructive:
-          "bg-[#FAF9F6] text-[#C84B31] border border-[#C84B31]/60 hover:bg-[#C84B31] hover:text-[#FAF9F6] hover:border-[#C84B31]",
-        link: "text-[#1E3A8A] underline-offset-4 hover:underline border border-transparent normal-case",
+          "bg-paper text-terracotta border border-terracotta/60 hover:bg-terracotta hover:text-paper hover:border-terracotta",
+        link: "text-cobalt underline-offset-4 hover:underline border border-transparent normal-case",
       },
       size: {
         default: "h-10 px-4",
-        sm: "h-8 px-2.5 text-[10px]",
+        sm: "h-8 px-2.5 text-[11px]",
         lg: "h-12 px-6 text-sm",
         icon: "h-10 w-10",
       },

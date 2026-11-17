@@ -22,8 +22,12 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KLAB TANGKIS — Ruang Bulutangkis",
-  description: "Arena bulutangkis arsitektural dengan fasilitas standar BWF.",
+  title: {
+    default: "OMAH GUYUB — Arena Bulutangkis",
+    template: "%s · OMAH GUYUB",
+  },
+  description:
+    "Arena bulutangkis arsitektural dengan tiga lapangan indoor standar BWF dan reservasi daring.",
 };
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
@@ -42,10 +46,18 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
           strategy="lazyOnload"
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-[#F5F3EE] text-[#141824]">
+      <body className="min-h-full flex flex-col font-sans bg-chalk text-navy">
         <Providers>
+          <a
+            href="#konten"
+            className="sr-only rounded-[2px] bg-navy px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-paper focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[60]"
+          >
+            Lewati ke konten utama
+          </a>
           <SiteHeader />
-          <div className="min-w-0 flex-1">{children}</div>
+          <main id="konten" className="min-w-0 flex-1">
+            {children}
+          </main>
           <SiteFooter />
         </Providers>
       </body>

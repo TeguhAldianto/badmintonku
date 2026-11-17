@@ -10,43 +10,43 @@ import { cn } from "@/lib/utils";
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
   PENDING_PAYMENT: {
     label: "Menunggu Pembayaran",
-    className: "border-[#141824]/30 bg-[#FAF9F6] text-[#6E6A61]",
+    className: "border-navy/30 bg-paper text-slate-muted",
   },
   WAITING_VERIFICATION: {
     label: "Menunggu Verifikasi",
-    className: "border-[#C84B31]/50 bg-[#C84B31]/10 text-[#C84B31]",
+    className: "border-terracotta/50 bg-terracotta/10 text-terracotta",
   },
   CONFIRMED: {
     label: "Dikonfirmasi",
-    className: "border-[#1E3A8A]/50 bg-[#1E3A8A]/10 text-[#1E3A8A]",
+    className: "border-cobalt/50 bg-cobalt/10 text-cobalt",
   },
   COMPLETED: {
     label: "Selesai",
-    className: "border-[#141824] bg-[#141824] text-[#FAF9F6]",
+    className: "border-navy bg-navy text-paper",
   },
   CANCELLED: {
     label: "Dibatalkan",
-    className: "slot-occupied border-[#141824]/25 text-[#6E6A61] line-through",
+    className: "slot-occupied border-navy/25 text-slate-muted line-through",
   },
   REJECTED: {
     label: "Ditolak",
-    className: "slot-occupied border-[#C84B31]/40 text-[#C84B31]",
+    className: "slot-occupied border-terracotta/40 text-terracotta",
   },
   EXPIRED: {
     label: "Kadaluarsa",
-    className: "slot-occupied border-[#141824]/20 text-[#6E6A61]",
+    className: "slot-occupied border-navy/20 text-slate-muted",
   },
   UNPAID: {
     label: "Belum Dibayar",
-    className: "border-[#141824]/30 bg-[#FAF9F6] text-[#6E6A61]",
+    className: "border-navy/30 bg-paper text-slate-muted",
   },
   VERIFYING: {
     label: "Diverifikasi",
-    className: "border-[#C84B31]/50 bg-[#C84B31]/10 text-[#C84B31]",
+    className: "border-terracotta/50 bg-terracotta/10 text-terracotta",
   },
   PAID: {
     label: "Lunas",
-    className: "border-[#1E3A8A] bg-[#1E3A8A] text-[#FAF9F6]",
+    className: "border-cobalt bg-cobalt text-paper",
   },
 };
 
@@ -57,13 +57,13 @@ export function getStatusLabel(status: string): string {
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   const config = STATUS_MAP[status] ?? {
     label: status,
-    className: "border-[#141824]/30 bg-[#FAF9F6] text-[#6E6A61]",
+    className: "border-navy/30 bg-paper text-slate-muted",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-[2px] border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider whitespace-nowrap",
+        "inline-flex items-center rounded-[2px] border px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider whitespace-nowrap",
         config.className,
         className
       )}
