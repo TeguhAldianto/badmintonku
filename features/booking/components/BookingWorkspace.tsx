@@ -465,11 +465,11 @@ export default function BookingWorkspace({ initialDate }: BookingWorkspaceProps)
           {(dateOptions.length > 0
             ? dateOptions
             : Array.from({ length: 7 }, (_, index) => ({
-                value: `skeleton-${index}`,
-                short: "— — —",
-                full: "",
-                isToday: false,
-              }))
+              value: `skeleton-${index}`,
+              short: "— — —",
+              full: "",
+              isToday: false,
+            }))
           ).map((option) => {
             const isActive = option.value === date && date !== "";
             const isPlaceholder = option.value.startsWith("skeleton-");
@@ -514,8 +514,8 @@ export default function BookingWorkspace({ initialDate }: BookingWorkspaceProps)
               {loadingCourts
                 ? "Memuat lapangan…"
                 : `${courtFilterLabel} · ${operatingHours.open
-                    .toString()
-                    .padStart(2, "0")}:00–${operatingHours.close
+                  .toString()
+                  .padStart(2, "0")}:00–${operatingHours.close
                     .toString()
                     .padStart(2, "0")}:00 WIB`}
             </span>
@@ -667,14 +667,14 @@ export default function BookingWorkspace({ initialDate }: BookingWorkspaceProps)
       <p className="sr-only" aria-live="polite">
         {totalHours > 0
           ? `${totalHours} jam dipilih, total ${totalPrice} rupiah. ${groups
-              .map(
-                (group) =>
-                  `${group.courtName} ${formatTimeSlot({
-                    startTime: group.startTime,
-                    endTime: group.endTime,
-                  })}`
-              )
-              .join(", ")}.`
+            .map(
+              (group) =>
+                `${group.courtName} ${formatTimeSlot({
+                  startTime: group.startTime,
+                  endTime: group.endTime,
+                })}`
+            )
+            .join(", ")}.`
           : "Belum ada slot dipilih."}
       </p>
     </div>

@@ -10,10 +10,11 @@ function rateLimitCheck(request: NextRequest): NextResponse | null {
   const { pathname } = request.nextUrl;
 
   // Apply rate limiting to sensitive routes
-  const isSensitiveRoute = pathname.startsWith("/api/bookings") ||
-                           pathname.startsWith("/api/availability") ||
-                           pathname.startsWith("/api/admin") ||
-                           pathname.startsWith("/api/payments");
+  const isSensitiveRoute =
+    pathname.startsWith("/api/bookings") ||
+    pathname.startsWith("/api/availability") ||
+    pathname.startsWith("/api/admin") ||
+    pathname.startsWith("/api/payments");
 
   if (isSensitiveRoute) {
     const now = Date.now();
@@ -25,9 +26,10 @@ function rateLimitCheck(request: NextRequest): NextResponse | null {
       lastCleanup = now;
     }
 
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-               request.headers.get("x-real-ip") || 
-               "anonymous";
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "anonymous";
     const windowMs = 60 * 1000; // 1 minute window
     const maxRequests = 30; // 30 requests per minute
 
@@ -45,7 +47,7 @@ function rateLimitCheck(request: NextRequest): NextResponse | null {
     if (record.count > maxRequests) {
       return NextResponse.json(
         { success: false, message: "Terlalu banyak request. Coba lagi nanti." },
-        { status: 429 }
+        { status: 429 },
       );
     }
   }
