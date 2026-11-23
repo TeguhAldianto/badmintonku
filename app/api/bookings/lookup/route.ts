@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     const bookings = await getBookingsByUser(phone);
     if (bookings.length > 0) {
-      const code = createLookupOtp(phone);
+      const code = await createLookupOtp(phone);
       if (code) {
         const result = await sendWhatsAppNotification({
           target: phone,

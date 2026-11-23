@@ -173,3 +173,17 @@ model NotificationLog {
 
   @@map("notification_logs")
 }
+
+model LookupOtp {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  codeHash  String
+  expiresAt DateTime
+  sentAt    DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("lookup_otps")
+}

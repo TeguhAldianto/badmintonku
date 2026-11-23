@@ -22,20 +22,20 @@ async function cleanup(date: Date, startTime: number, endTime: number) {
 }
 
 describe("lookup OTP", () => {
-  test("verifies a valid code and rejects reuse", () => {
+  test("verifies a valid code and rejects reuse", async () => {
     const phone = "081299990001";
-    const code = createLookupOtp(phone);
+    const code = await createLookupOtp(phone);
     expect(code).toMatch(/^\d{6}$/);
-    expect(verifyLookupOtp(phone, code!)).toBe(true);
-    expect(verifyLookupOtp(phone, code!)).toBe(false);
+    expect(await verifyLookupOtp(phone, code!)).toBe(true);
+    expect(await verifyLookupOtp(phone, code!)).toBe(false);
   });
 
-  test("rejects wrong code but allows correct code afterwards", () => {
+  test("rejects wrong code but allows correct code afterwards", async () => {
     const phone = "081299990002";
-    const code = createLookupOtp(phone);
+    const code = await createLookupOtp(phone);
     expect(code).toMatch(/^\d{6}$/);
-    expect(verifyLookupOtp(phone, "000000")).toBe(false);
-    expect(verifyLookupOtp(phone, code!)).toBe(true);
+    expect(await verifyLookupOtp(phone, "000000")).toBe(false);
+    expect(await verifyLookupOtp(phone, code!)).toBe(true);
   });
 });
 

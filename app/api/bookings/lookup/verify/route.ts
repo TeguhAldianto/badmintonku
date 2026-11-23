@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const phone = normalizePhone(parsed.data.phone);
-    if (!verifyLookupOtp(phone, parsed.data.code)) {
+    if (!(await verifyLookupOtp(phone, parsed.data.code))) {
       return fail("Kode verifikasi salah atau sudah kedaluwarsa", 400);
     }
 
