@@ -152,7 +152,11 @@ function PaymentReviewDialog({
           {payment.proofUrl ? (
             <div className="border border-navy/25 bg-chalk p-2">
               <Image
-                src={payment.proofUrl}
+                src={
+                  payment.proofUrl.startsWith("payments/") || !payment.proofUrl.startsWith("/")
+                    ? `/api/payments/${payment.id}/proof`
+                    : payment.proofUrl
+                }
                 alt={`Bukti transfer ${payment.booking.userName} sebesar ${formatCurrency(payment.amount)}`}
                 width={600}
                 height={400}

@@ -112,7 +112,7 @@ describe("Payment System", () => {
 
       expect(payment.status).toBe(PaymentStatus.VERIFYING);
       expect(payment.method).toBe("BANK_TRANSFER");
-      expect(payment.proofUrl).toMatch(/^\/uploads\/payments\/.+\.jpg$/);
+      expect(payment.proofUrl).toMatch(/^payments\/.+\.jpg$/);
 
       const booking = await prisma.booking.findUnique({ where: { id: testBookingId } });
       expect(booking?.status).toBe(BookingStatus.WAITING_VERIFICATION);

@@ -1,4 +1,14 @@
-import { isPaymentMethod, uploadPaymentProof } from "@/features/payment/server/payment.service";
+import { readFile } from "node:fs/promises";
+
+import { prisma } from "@/server/db/prisma";
+import { getAdminSession } from "@/server/auth/guards";
+import {
+  isPaymentMethod,
+  proofContentType,
+  resolveProofPath,
+  uploadPaymentProof,
+} from "@/features/payment/server/payment.service";
+import { normalizePhone } from "@/features/booking/server/booking.service";
 import { fail, handleRouteError, ok } from "@/shared/api/response";
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
@@ -35,5 +45,43 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return ok(payment);
   } catch (error) {
     return handleRouteError(error, "Gagal upload bukti pembayaran");
+  }
+}
+
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const isAdmin = Boolean(await getAdminSession());
+    const phone = new URL(request.url).searchParams.get("phone") ?? undefined;
+
+    const payment =
+      (await prisma.payment.findUnique({
+        where: { id },
+        include: { booking: { select: { userPhone: true } } },
+      })) ??
+      (await prisma.payment.findUnique({
+        where: { bookingId: id },
+        include: { booking: { select: { userPhone: true } } },
+      }));
+
+    if (!payment) return fail("Pembayaran tidak ditemukan", 404);
+    if (!isAdmin && payment.booking.userPhone !== normalizePhone(phone ?? "")) {
+      return fail("Tidak memiliki akses", 403);
+    }
+    if (!payment.proofUrl) return fail("Bukti pembayaran tidak ditemukan", 404);
+
+    const filePath = resolveProofPath(payment.proofUrl);
+    if (!filePath) return fail("Bukti pembayaran tidak ditemukan", 404);
+
+    const file = await readFile(filePath);
+    return new Response(file, {
+      headers: {
+        "Content-Type": proofContentType(filePath),
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
+  } catch (error) {
+    return handleRouteError(error, "Gagal mengambil bukti pembayaran");
   }
 }

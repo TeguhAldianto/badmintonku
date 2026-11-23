@@ -127,13 +127,14 @@ export async function uploadPaymentProof({
     );
   }
 
-  const uploadsDir = path.join(process.cwd(), "public", "uploads", "payments");
+  const uploadsDir = path.join(process.cwd(), "data", "uploads", "payments");
   await mkdir(uploadsDir, { recursive: true });
 
   const fileName = `${bookingId}-${Date.now()}.${imageType}`;
   const filePath = path.join(uploadsDir, fileName);
   await writeFile(filePath, file);
-  const proofUrl = `/uploads/payments/${fileName}`;
+  // Stored as a private key; served only by the authenticated proof endpoint.
+  const proofUrl = `payments/${fileName}`;
 
   let updatedPayment;
   try {
@@ -365,6 +366,25 @@ export async function getPaymentWithProof(paymentId: string, userPhone?: string,
   }
 
   return payment;
+}
+
+export function resolveProofPath(proofUrl: string): string | null {
+  if (proofUrl.startsWith("payments/")) {
+    const name = path.basename(proofUrl);
+    return path.join(process.cwd(), "data", "uploads", "payments", name);
+  }
+  if (proofUrl.startsWith("/uploads/payments/")) {
+    const name = path.basename(proofUrl);
+    return path.join(process.cwd(), "public", "uploads", "payments", name);
+  }
+  return null;
+}
+
+export function proofContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".webp") return "image/webp";
+  return "image/jpeg";
 }
 
 /**
