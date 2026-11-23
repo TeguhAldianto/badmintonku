@@ -6,6 +6,7 @@ import {
   detectImageType,
   getPaymentWithProof,
   processPaymentAdmin,
+  selectPaymentMethod,
   uploadPaymentProof,
   PAYMENT_STATE,
 } from "@/features/payment/server/payment.service";
@@ -282,6 +283,41 @@ describe("Payment System", () => {
     test("admin can access any payment", async () => {
       const payment = await getPaymentWithProof(testPaymentId, "08999999999", true);
       expect(payment.id).toBe(testPaymentId);
+    });
+  });
+
+  describe("selectPaymentMethod", () => {
+    test("guest can select DIRECT on UNPAID payment", async () => {
+      const payment = await selectPaymentMethod({
+        bookingId: testBookingId,
+        userPhone: testUserPhone,
+        method: "DIRECT",
+      });
+
+      expect(payment?.method).toBe("DIRECT");
+      expect(payment?.status).toBe(PaymentStatus.UNPAID);
+    });
+
+    test("cannot select method with wrong phone", async () => {
+      await expect(
+        selectPaymentMethod({
+          bookingId: testBookingId,
+          userPhone: "08999999999",
+          method: "DIRECT",
+        })
+      ).rejects.toThrow("Tidak memiliki akses");
+    });
+
+    test("cannot upload proof for DIRECT method", async () => {
+      await expect(
+        uploadPaymentProof({
+          bookingId: testBookingId,
+          userPhone: testUserPhone,
+          file: jpegBuffer(),
+          mimeType: "image/jpeg",
+          method: "DIRECT",
+        })
+      ).rejects.toThrow("tidak memerlukan unggah bukti");
     });
   });
 });

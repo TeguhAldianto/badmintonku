@@ -1,6 +1,11 @@
 import { describe, test, expect } from "vitest";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
-import { createBooking, normalizePhone } from "@/features/booking/server/booking.service";
+import {
+  createBooking,
+  normalizePhone,
+  updateBookingStatusByAdmin,
+} from "@/features/booking/server/booking.service";
+import { selectPaymentMethod } from "@/features/payment/server/payment.service";
 import { prisma } from "@/server/db/prisma";
 
 /** A UTC-midnight date `daysAhead` days in the future (never a hardcoded past date). */
@@ -118,5 +123,81 @@ describe("Booking Engine - Concurrency & Slot Blocking", () => {
         userPhone: "08155555555",
       })
     ).rejects.toThrow("tanggal yang sudah lewat");
+  });
+
+  test("inline expiry of stale PENDING_PAYMENT records history and syncs payment", async () => {
+    const testDate = futureDateOnly(10);
+    const startTime = 14;
+    const endTime = 15;
+    await cleanup(testDate, startTime, endTime);
+
+    const stale = await prisma.booking.create({
+      data: {
+        courtId: COURT_ID,
+        date: testDate,
+        startTime,
+        endTime,
+        userName: "Stale User",
+        userPhone: "08166666666",
+        totalPrice: 50_000,
+        status: BookingStatus.PENDING_PAYMENT,
+        expiresAt: new Date(Date.now() - 60 * 60 * 1000),
+        payment: { create: { amount: 50_000, status: PaymentStatus.UNPAID } },
+      },
+    });
+
+    await createBooking({
+      courtId: COURT_ID,
+      date: testDate,
+      startTime,
+      endTime,
+      userName: "New User",
+      userPhone: "08177777777",
+    });
+
+    const expired = await prisma.booking.findUnique({
+      where: { id: stale.id },
+      include: { payment: true, statusHistory: true },
+    });
+    expect(expired?.status).toBe(BookingStatus.EXPIRED);
+    expect(expired?.payment?.status).toBe(PaymentStatus.REJECTED);
+    expect(expired?.statusHistory.some((h) => h.newStatus === BookingStatus.EXPIRED)).toBe(true);
+
+    await cleanup(testDate, startTime, endTime);
+  });
+
+  test("admin can confirm a DIRECT pay-at-venue booking", async () => {
+    const testDate = futureDateOnly(12);
+    const startTime = 16;
+    const endTime = 17;
+    await cleanup(testDate, startTime, endTime);
+
+    const booking = await createBooking({
+      courtId: COURT_ID,
+      date: testDate,
+      startTime,
+      endTime,
+      userName: "Direct User",
+      userPhone: "08188888888",
+    });
+
+    await selectPaymentMethod({
+      bookingId: booking.id,
+      userPhone: "08188888888",
+      method: "DIRECT",
+    });
+
+    const updated = await updateBookingStatusByAdmin(
+      booking.id,
+      BookingStatus.CONFIRMED,
+      "admin-test"
+    );
+    expect(updated.status).toBe(BookingStatus.CONFIRMED);
+
+    const payment = await prisma.payment.findUnique({ where: { bookingId: booking.id } });
+    expect(payment?.status).toBe(PaymentStatus.PAID);
+    expect(payment?.method).toBe("DIRECT");
+
+    await cleanup(testDate, startTime, endTime);
   });
 });

@@ -231,4 +231,64 @@ describe("Midtrans Sandbox Integration Tests", () => {
     const updatedBooking = await prisma.booking.findUnique({ where: { id: testBookingId } });
     expect(updatedBooking?.status).toBe(BookingStatus.PENDING_PAYMENT);
   });
+
+  test("11. Late settlement after expiry must not resurrect booking (and must not confirm)", async () => {
+    await prisma.booking.update({
+      where: { id: testBookingId },
+      data: { expiresAt: new Date(Date.now() - 60 * 60 * 1000) },
+    });
+
+    const result = await handleMidtransNotification({
+      order_id: testBookingId,
+      transaction_id: "midtrans-tx-late-1",
+      transaction_status: "settlement",
+      gross_amount: "50000",
+      payment_type: "qris",
+      status_code: "200",
+      currency: "IDR",
+    });
+
+    expect(result.success).toBe(true);
+
+    const updatedBooking = await prisma.booking.findUnique({ where: { id: testBookingId } });
+    const updatedPayment = await prisma.payment.findUnique({ where: { id: testPaymentId } });
+    expect(updatedBooking?.status).not.toBe(BookingStatus.CONFIRMED);
+    expect([BookingStatus.EXPIRED, BookingStatus.PENDING_PAYMENT, BookingStatus.REJECTED]).toContain(
+      updatedBooking?.status
+    );
+    expect(updatedPayment?.status).toBe(PaymentStatus.REJECTED);
+  });
+
+  test("12. Settlement after a fraud challenge confirms the booking", async () => {
+    const challenge = await handleMidtransNotification({
+      order_id: testBookingId,
+      transaction_id: "midtrans-tx-challenge-1",
+      transaction_status: "capture",
+      fraud_status: "challenge",
+      gross_amount: "50000",
+      payment_type: "credit_card",
+      status_code: "201",
+      currency: "IDR",
+    });
+    expect(challenge.success).toBe(true);
+
+    const afterChallenge = await prisma.booking.findUnique({ where: { id: testBookingId } });
+    expect(afterChallenge?.status).toBe(BookingStatus.WAITING_VERIFICATION);
+
+    const settled = await handleMidtransNotification({
+      order_id: testBookingId,
+      transaction_id: "midtrans-tx-challenge-1",
+      transaction_status: "settlement",
+      gross_amount: "50000",
+      payment_type: "credit_card",
+      status_code: "200",
+      currency: "IDR",
+    });
+    expect(settled.success).toBe(true);
+
+    const booking = await prisma.booking.findUnique({ where: { id: testBookingId } });
+    const payment = await prisma.payment.findUnique({ where: { id: testPaymentId } });
+    expect(booking?.status).toBe(BookingStatus.CONFIRMED);
+    expect(payment?.status).toBe(PaymentStatus.PAID);
+  });
 });
