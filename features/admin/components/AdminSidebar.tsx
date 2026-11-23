@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useDialog } from "@/shared/lib/use-dialog";
 
 interface NavigationItem {
   name: string;
@@ -44,6 +45,8 @@ interface AdminSidebarProps {
 export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  // Escape closes the mobile drawer and focus stays inside it while open.
+  const drawerRef = useDialog<HTMLElement>(onCloseMobile, mobileOpen);
 
   return (
     <>
@@ -52,21 +55,26 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
           type="button"
           aria-label="Tutup menu"
           onClick={onCloseMobile}
-          className="fixed inset-0 z-40 bg-[#141824]/60 lg:hidden"
+          className="fixed inset-0 z-40 bg-navy/60 lg:hidden"
         />
       ) : null}
 
       <aside
+        ref={drawerRef}
+        tabIndex={mobileOpen ? -1 : undefined}
+        role={mobileOpen ? "dialog" : undefined}
+        aria-modal={mobileOpen ? "true" : undefined}
+        aria-label={mobileOpen ? "Menu admin" : undefined}
         className={cn(
-          "z-50 flex shrink-0 flex-col border-r border-[#141824] bg-[#141824] text-[#FAF9F6] transition-all duration-200",
+          "z-50 flex shrink-0 flex-col border-r border-navy bg-navy text-paper transition-all duration-200",
           "fixed inset-y-0 left-0 w-64 lg:static lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           collapsed ? "lg:w-[72px]" : "lg:w-60"
         )}
       >
-        <div className="flex h-14 items-center justify-between border-b border-[#FAF9F6]/15 px-3 lg:h-16">
+        <div className="flex h-14 items-center justify-between border-b border-paper/15 px-3 lg:h-16">
           <Link href="/admin/dashboard" className="flex items-center gap-2.5 overflow-hidden">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] border border-[#FAF9F6]/40">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[2px] border border-paper/40">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 20H20" stroke="currentColor" strokeWidth="2" />
                 <path
@@ -84,7 +92,7 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
               )}
             >
               <span className="font-display text-sm font-bold tracking-tight">OMAH GUYUB</span>
-              <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-[#EAE6DD]/50">
+              <span className="mt-1 font-mono text-[11px] uppercase tracking-[0.18em] text-birch/50">
                 Panel pengelola
               </span>
             </span>
@@ -94,7 +102,7 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
             type="button"
             onClick={onCloseMobile}
             aria-label="Tutup menu"
-            className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-[#FAF9F6]/25 text-[#FAF9F6] lg:hidden"
+            className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-paper/25 text-paper lg:hidden"
           >
             <X className="h-3.5 w-3.5" strokeWidth={1.5} />
           </button>
@@ -103,7 +111,7 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
             type="button"
             onClick={() => setCollapsed((value) => !value)}
             aria-label={collapsed ? "Lebarkan menu" : "Ringkas menu"}
-            className="hidden h-7 w-7 items-center justify-center rounded-[2px] border border-[#FAF9F6]/25 font-mono text-[10px] font-bold text-[#FAF9F6] transition-colors hover:border-[#C84B31] hover:bg-[#C84B31] lg:flex"
+            className="hidden h-7 w-7 items-center justify-center rounded-[2px] border border-paper/25 font-mono text-[11px] font-bold text-paper transition-colors hover:border-terracotta hover:bg-terracotta lg:flex"
           >
             {collapsed ? "»" : "«"}
           </button>
@@ -112,7 +120,7 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
         <nav className="flex-1 overflow-y-auto py-2" aria-label="Menu admin">
           <p
             className={cn(
-              "px-4 pb-2 pt-2 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#EAE6DD]/40",
+              "px-4 pb-2 pt-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-birch/40",
               collapsed && "lg:hidden"
             )}
           >
@@ -133,8 +141,8 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
                     className={cn(
                       "flex items-center gap-2.5 border-l-2 px-3 py-2.5 transition-colors",
                       isActive
-                        ? "border-[#C84B31] bg-[#FAF9F6]/10 text-[#FAF9F6]"
-                        : "border-transparent text-[#EAE6DD]/65 hover:border-[#FAF9F6]/30 hover:bg-[#FAF9F6]/5 hover:text-[#FAF9F6]",
+                        ? "border-terracotta bg-paper/10 text-paper"
+                        : "border-transparent text-birch/65 hover:border-paper/30 hover:bg-paper/5 hover:text-paper",
                       collapsed && "lg:justify-center lg:px-2"
                     )}
                   >
@@ -149,7 +157,7 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
                     </span>
                     <span
                       className={cn(
-                        "font-mono text-[9px] text-[#EAE6DD]/30",
+                        "font-mono text-[11px] text-birch/30",
                         collapsed && "lg:hidden"
                       )}
                     >
@@ -162,13 +170,13 @@ export function AdminSidebar({ mobileOpen, onCloseMobile }: AdminSidebarProps) {
           </ul>
         </nav>
 
-        <div className="border-t border-[#FAF9F6]/15 p-2">
+        <div className="border-t border-paper/15 p-2">
           <Link
             href="/"
             onClick={onCloseMobile}
             title={collapsed ? "Ke situs utama" : undefined}
             className={cn(
-              "flex items-center gap-2.5 rounded-[2px] border border-[#FAF9F6]/20 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider text-[#EAE6DD]/70 transition-colors hover:border-[#C84B31] hover:bg-[#C84B31] hover:text-[#FAF9F6]",
+              "flex items-center gap-2.5 rounded-[2px] border border-paper/20 px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-birch/70 transition-colors hover:border-terracotta hover:bg-terracotta hover:text-paper",
               collapsed && "lg:justify-center lg:px-2"
             )}
           >

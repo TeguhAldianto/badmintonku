@@ -113,48 +113,48 @@ export function CourtDatePicker() {
   });
 
   return (
-    <div className="rounded-[2px] border border-[#141824] bg-[#FAF9F6]">
-      <div className="flex items-center justify-between border-b border-[#141824] bg-[#EAE6DD] px-3 py-2">
+    <div className="rounded-[2px] border border-navy bg-paper">
+      <div className="flex items-center justify-between border-b border-navy bg-birch px-3 py-2">
         <button
           type="button"
           onClick={() => shiftMonth(-1)}
           aria-label="Bulan sebelumnya"
-          className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] text-[#141824] transition-colors hover:border-[#141824] hover:bg-[#141824] hover:text-[#FAF9F6]"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-navy/30 bg-paper text-navy transition-colors hover:border-navy hover:bg-navy hover:text-paper"
         >
           <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
         </button>
-        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+        <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-navy">
           {monthLabel}
         </span>
         <button
           type="button"
           onClick={() => shiftMonth(1)}
           aria-label="Bulan berikutnya"
-          className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] text-[#141824] transition-colors hover:border-[#141824] hover:bg-[#141824] hover:text-[#FAF9F6]"
+          className="flex h-7 w-7 items-center justify-center rounded-[2px] border border-navy/30 bg-paper text-navy transition-colors hover:border-navy hover:bg-navy hover:text-paper"
         >
           <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
         </button>
       </div>
 
-      <div className="grid grid-cols-7 border-b border-[#141824]/20 bg-[#F5F3EE]">
+      <div className="grid grid-cols-7 border-b border-navy/20 bg-chalk">
         {WEEKDAYS.map((day) => (
           <span
             key={day}
-            className="py-1.5 text-center font-mono text-[9px] font-bold uppercase tracking-wider text-[#6E6A61]"
+            className="py-1.5 text-center font-mono text-[11px] font-bold uppercase tracking-wider text-slate-muted"
           >
             {day}
           </span>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-px bg-[#141824]/15 p-px">
+      <div className="grid grid-cols-7 gap-px bg-navy/15 p-px">
         {cells.length === 0
           ? Array.from({ length: 35 }, (_, index) => (
-              <span key={`skeleton-${index}`} className="block h-9 animate-pulse bg-[#EAE6DD]" />
+              <span key={`skeleton-${index}`} className="block h-9 animate-pulse bg-birch" />
             ))
           : cells.map((cell) => {
               if (!cell.value) {
-                return <span key={cell.key} className="block h-9 bg-[#FAF9F6]" />;
+                return <span key={cell.key} className="block h-9 bg-paper" />;
               }
               const isSelected = cell.value === selected;
               const isToday = cell.value === todayValue;
@@ -169,15 +169,15 @@ export function CourtDatePicker() {
                   className={cn(
                     "relative flex h-9 flex-col items-center justify-center font-mono text-[11px] font-semibold transition-colors",
                     isSelected
-                      ? "bg-[#141824] text-[#FAF9F6]"
+                      ? "bg-navy text-paper"
                       : cell.disabled
-                        ? "cursor-not-allowed bg-[#F5F3EE] text-[#6E6A61]/40 line-through"
-                        : "bg-[#FAF9F6] text-[#141824] hover:bg-[#EAE6DD]"
+                        ? "cursor-not-allowed bg-chalk text-slate-muted/40 line-through"
+                        : "bg-paper text-navy hover:bg-birch"
                   )}
                 >
                   {cell.day}
                   {isToday && !isSelected ? (
-                    <span className="absolute bottom-1 h-0.5 w-3 bg-[#C84B31]" />
+                    <span className="absolute bottom-1 h-0.5 w-3 bg-terracotta" />
                   ) : null}
                 </button>
               );
@@ -185,17 +185,17 @@ export function CourtDatePicker() {
       </div>
 
       <div className="space-y-3 p-3">
-        <div className="grid grid-cols-4 gap-px border border-[#141824]/25 bg-[#141824]/25">
+        <div className="grid grid-cols-4 gap-px border border-navy/25 bg-navy/25">
           {quickPicks.map((pick) => (
             <button
               key={pick.value}
               type="button"
               onClick={() => setSelected(pick.value)}
               className={cn(
-                "py-1.5 font-mono text-[9px] font-bold uppercase tracking-wider transition-colors",
+                "py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors",
                 pick.value === selected
-                  ? "bg-[#C84B31] text-[#FAF9F6]"
-                  : "bg-[#FAF9F6] text-[#141824] hover:bg-[#EAE6DD]"
+                  ? "bg-terracotta text-paper"
+                  : "bg-paper text-navy hover:bg-birch"
               )}
             >
               {pick.label}
@@ -203,11 +203,11 @@ export function CourtDatePicker() {
           ))}
         </div>
 
-        <div className="border border-[#141824]/25 bg-[#F5F3EE] px-3 py-2.5">
-          <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-[#6E6A61]">
+        <div className="border border-navy/25 bg-chalk px-3 py-2.5">
+          <span className="block font-mono text-[11px] uppercase tracking-[0.2em] text-slate-muted">
             Tanggal terpilih
           </span>
-          <span className="mt-0.5 block font-display text-sm font-bold text-[#141824]">
+          <span className="mt-0.5 block font-display text-sm font-bold text-navy">
             {selectedDate ? formatDateIndo(selectedDate) : "—"}
           </span>
         </div>
@@ -216,10 +216,10 @@ export function CourtDatePicker() {
           href={selected ? `/booking?date=${selected}` : "/booking"}
           aria-disabled={!selected}
           className={cn(
-            "flex w-full items-center justify-center gap-2 rounded-[2px] border border-[#141824] px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors",
+            "flex w-full items-center justify-center gap-2 rounded-[2px] border border-navy px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors",
             selected
-              ? "bg-[#C84B31] text-[#FAF9F6] hover:bg-[#141824]"
-              : "pointer-events-none bg-[#EAE6DD] text-[#6E6A61]"
+              ? "bg-terracotta text-paper hover:bg-navy"
+              : "pointer-events-none bg-birch text-slate-muted"
           )}
         >
           Lihat ketersediaan →

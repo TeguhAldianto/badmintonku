@@ -10,25 +10,25 @@ export const dynamic = "force-dynamic";
 
 const SPECS = [
   {
-    code: "A.01",
+    code: "01",
     label: "Plafon bebas",
     value: "14.0 M",
     note: "Tanpa balok penghalang lintasan shuttlecock.",
   },
   {
-    code: "A.02",
+    code: "02",
     label: "Pencahayaan",
     value: "800 LUX",
-    note: "Side-LED anti-silau, CRI di atas 90.",
+    note: "Lampu samping anti-silau agar kok tetap terlihat jelas.",
   },
   {
-    code: "A.03",
+    code: "03",
     label: "Sub-lantai",
     value: "BWF PRO",
     note: "Konstruksi pegas kayu penyerap benturan sendi.",
   },
   {
-    code: "A.04",
+    code: "04",
     label: "Zona tunggu",
     value: "3 AREA",
     note: "Bangku pemain, lounge, dan ruang bilas terpisah.",
@@ -80,47 +80,47 @@ export default async function HomePage() {
   return (
     <div>
       {/* HERO */}
-      <section className="border-b border-[#141824]">
+      <section className="border-b border-navy">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8 lg:py-16">
           <div className="flex flex-col justify-between lg:col-span-5">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-[2px] border border-[#141824]/25 bg-[#EAE6DD] px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#141824]">
-                <span className="inline-block h-1.5 w-1.5 bg-[#C84B31]" />
+              <div className="inline-flex items-center gap-2 rounded-[2px] border border-navy/25 bg-birch px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-navy">
+                <span className="inline-block h-1.5 w-1.5 bg-terracotta" />
                 Arena bulutangkis · Jakarta Selatan
               </div>
 
-              <h1 className="mt-5 font-display text-3xl font-bold leading-[1.06] tracking-tight text-[#141824] sm:text-4xl lg:text-[46px]">
-                Ruang main dengan presisi arsitektural.
+              <h1 className="mt-5 font-display text-3xl font-bold leading-[1.06] tracking-tight text-navy sm:text-4xl lg:text-[46px]">
+                Main bulu tangkis tanpa ribet.
               </h1>
 
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#6E6A61] sm:text-[15px]">
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-slate-muted sm:text-[15px]">
                 Tiga lapangan indoor standar turnamen di dalam satu hall dengan plafon bebas 14
-                meter, pencahayaan samping anti-silau, dan sub-lantai pegas. Reservasi dihitung
-                langsung dari ketersediaan nyata — tanpa telepon, tanpa antre.
+                meter, pencahayaan samping anti-silau, dan sub-lantai pegas. Cek jadwal dan pesan
+                langsung dari situs — tanpa telepon, tanpa antre.
               </p>
 
-              <div className="mt-6 grid grid-cols-3 divide-x divide-[#141824]/25 border border-[#141824]/25 bg-[#FAF9F6]">
+              <div className="mt-6 grid grid-cols-3 divide-x divide-navy/25 border border-navy/25 bg-paper">
                 <div className="p-3">
-                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                  <span className="block font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                     Lapangan
                   </span>
-                  <span className="mt-0.5 block font-display text-lg font-bold text-[#141824]">
+                  <span className="mt-0.5 block font-display text-lg font-bold text-navy">
                     {activeCourts.toString().padStart(2, "0")} / {courts.length.toString().padStart(2, "0")}
                   </span>
                 </div>
                 <div className="p-3">
-                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                  <span className="block font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                     Tarif / jam
                   </span>
-                  <span className="mt-0.5 block font-mono text-sm font-bold text-[#1E3A8A]">
+                  <span className="mt-0.5 block font-mono text-sm font-bold text-cobalt">
                     {formatCurrency(pricePerHour)}
                   </span>
                 </div>
                 <div className="p-3">
-                  <span className="block font-mono text-[9px] uppercase tracking-wider text-[#6E6A61]">
+                  <span className="block font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                     Jam buka
                   </span>
-                  <span className="mt-0.5 block font-mono text-sm font-bold text-[#141824]">
+                  <span className="mt-0.5 block font-mono text-sm font-bold text-navy">
                     08—21
                   </span>
                 </div>
@@ -130,14 +130,14 @@ export default async function HomePage() {
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <Link
                 href="/booking"
-                className="inline-flex items-center gap-3 rounded-[2px] border border-[#141824] bg-[#C84B31] px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#FAF9F6] transition-colors hover:bg-[#141824]"
+                className="inline-flex items-center gap-3 rounded-[2px] border border-navy bg-terracotta px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:bg-navy"
               >
                 Reservasi lapangan
                 <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
               </Link>
               <Link
                 href="/courts"
-                className="inline-flex items-center gap-2 rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] px-5 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#141824] transition-colors hover:border-[#141824] hover:bg-[#EAE6DD]"
+                className="inline-flex items-center gap-2 rounded-[2px] border border-navy/30 bg-paper px-5 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-navy transition-colors hover:border-navy hover:bg-birch"
               >
                 Lihat lapangan
                 <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
@@ -147,7 +147,7 @@ export default async function HomePage() {
 
           <div className="lg:col-span-7">
             <FloorplanShowcase courts={floorplanCourts} />
-            <p className="mt-2 font-mono text-[10px] uppercase leading-relaxed tracking-wider text-[#6E6A61]">
+            <p className="mt-2 font-mono text-[11px] uppercase leading-relaxed tracking-wider text-slate-muted">
               Denah berskala · klik unit untuk melihat spesifikasi matras dan status operasional.
             </p>
           </div>
@@ -155,28 +155,28 @@ export default async function HomePage() {
       </section>
 
       {/* SPECIFICATIONS */}
-      <section className="border-b border-[#141824]/20">
+      <section className="border-b border-navy/20">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
-            <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b border-navy/25 pb-3">
+            <h2 className="font-display text-xl font-bold tracking-tight text-navy sm:text-2xl">
               Spesifikasi bangunan
             </h2>
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
-              Lembar A — Data teknis
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-muted">
+              Fasilitas &amp; standar
             </span>
           </div>
 
-          <dl className="mt-4 grid gap-px border border-[#141824] bg-[#141824]/30 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="mt-4 grid gap-px border border-navy bg-navy/30 sm:grid-cols-2 lg:grid-cols-4">
             {SPECS.map((spec) => (
-              <div key={spec.code} className="bg-[#FAF9F6] p-4">
-                <dt className="flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              <div key={spec.code} className="bg-paper p-4">
+                <dt className="flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                   <span>{spec.label}</span>
-                  <span className="text-[#141824]/40">{spec.code}</span>
+                  <span className="text-navy/40">{spec.code}</span>
                 </dt>
-                <dd className="mt-2 font-display text-2xl font-bold tracking-tight text-[#141824]">
+                <dd className="mt-2 font-display text-2xl font-bold tracking-tight text-navy">
                   {spec.value}
                 </dd>
-                <p className="mt-1.5 text-[11px] leading-relaxed text-[#6E6A61]">{spec.note}</p>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-muted">{spec.note}</p>
               </div>
             ))}
           </dl>
@@ -187,22 +187,22 @@ export default async function HomePage() {
       <section>
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-10 sm:px-6 lg:grid-cols-12 lg:px-8 lg:py-14">
           <div className="lg:col-span-7">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
-              <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-navy/25 pb-3">
+              <h2 className="font-display text-xl font-bold tracking-tight text-navy sm:text-2xl">
                 Fasilitas arena
               </h2>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
-                Lembar B — Inventaris
+              <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-muted">
+                Yang tersedia
               </span>
             </div>
 
-            <ul className="mt-4 divide-y divide-[#141824]/15 border-y border-[#141824]/25">
+            <ul className="mt-4 divide-y divide-navy/15 border-y border-navy/25">
               {FACILITIES.map((facility, index) => (
                 <li key={facility} className="flex gap-4 py-3">
-                  <span className="w-8 shrink-0 font-mono text-[10px] font-bold text-[#C84B31]">
+                  <span className="w-8 shrink-0 font-mono text-[11px] font-bold text-terracotta">
                     {(index + 1).toString().padStart(2, "0")}
                   </span>
-                  <span className="text-xs leading-relaxed text-[#141824] sm:text-sm">
+                  <span className="text-xs leading-relaxed text-navy sm:text-sm">
                     {facility}
                   </span>
                 </li>
@@ -211,12 +211,12 @@ export default async function HomePage() {
           </div>
 
           <div className="lg:col-span-5">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824]/25 pb-3">
-              <h2 className="font-display text-xl font-bold tracking-tight text-[#141824] sm:text-2xl">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-navy/25 pb-3">
+              <h2 className="font-display text-xl font-bold tracking-tight text-navy sm:text-2xl">
                 Cara reservasi
               </h2>
-              <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#6E6A61]">
-                Lembar C — Prosedur
+              <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-muted">
+                3 langkah
               </span>
             </div>
 
@@ -224,15 +224,15 @@ export default async function HomePage() {
               {STEPS.map((item) => (
                 <li
                   key={item.step}
-                  className="rounded-[2px] border border-[#141824]/25 bg-[#FAF9F6] p-4"
+                  className="rounded-[2px] border border-navy/25 bg-paper p-4"
                 >
-                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#C84B31]">
+                  <span className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-terracotta">
                     Langkah {item.step}
                   </span>
-                  <h3 className="mt-1 font-display text-base font-bold text-[#141824]">
+                  <h3 className="mt-1 font-display text-base font-bold text-navy">
                     {item.title}
                   </h3>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[#6E6A61] sm:text-xs">
+                  <p className="mt-1 text-[11px] leading-relaxed text-slate-muted sm:text-xs">
                     {item.body}
                   </p>
                 </li>
@@ -243,23 +243,23 @@ export default async function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="border-y border-[#141824] bg-[#141824] text-[#FAF9F6]">
+      <section className="border-y border-navy bg-navy text-paper">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-12">
           <div>
-            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#C84B31]">
+            <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-terracotta">
               Slot terbatas per jam
             </span>
             <h2 className="mt-1.5 max-w-xl font-display text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
               Amankan jam main Anda sebelum diambil pemain lain.
             </h2>
-            <p className="mt-2 max-w-xl text-xs leading-relaxed text-[#EAE6DD]/70 sm:text-sm">
+            <p className="mt-2 max-w-xl text-xs leading-relaxed text-birch/70 sm:text-sm">
               Ketersediaan diperbarui setiap kali halaman dimuat. Slot yang belum dibayar dilepas
               otomatis setelah 60 menit.
             </p>
           </div>
           <Link
             href="/booking"
-            className="inline-flex shrink-0 items-center justify-center gap-3 rounded-[2px] border border-[#FAF9F6] bg-[#C84B31] px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-[#FAF9F6] transition-colors hover:bg-[#FAF9F6] hover:text-[#141824]"
+            className="inline-flex shrink-0 items-center justify-center gap-3 rounded-[2px] border border-paper bg-terracotta px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:bg-paper hover:text-navy"
           >
             Mulai reservasi
             <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />

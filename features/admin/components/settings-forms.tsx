@@ -25,9 +25,9 @@ async function submitSettings(values: Record<string, string>) {
 }
 
 const LABEL_CLASS =
-  "mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-[#6E6A61]";
+  "mb-1 block font-mono text-[11px] font-bold uppercase tracking-wider text-slate-muted";
 
-const SECTION_TITLE = "font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]";
+const SECTION_TITLE = "font-mono text-[11px] font-bold uppercase tracking-wider text-navy";
 
 export function SettingsForms({ adminName, email, hours, pricePerHour }: SettingsFormsProps) {
   const router = useRouter();
@@ -56,8 +56,8 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
 
   return (
     <div className="space-y-4">
-      <section className="border border-[#141824] bg-[#FAF9F6]">
-        <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+      <section className="border border-navy bg-paper">
+        <header className="border-b border-navy bg-birch px-4 py-2.5">
           <h2 className={SECTION_TITLE}>Informasi akun admin</h2>
         </header>
         <div className="space-y-3 p-4">
@@ -65,7 +65,10 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
             <label className={LABEL_CLASS} htmlFor="settings-email">
               Email
             </label>
-            <Input id="settings-email" value={email} disabled className="bg-[#EAE6DD]" />
+            <Input id="settings-email" value={email} disabled className="bg-birch" />
+            <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-slate-muted">
+              Email dipakai untuk login admin sehingga tidak dapat diubah dari panel.
+            </p>
           </div>
           <div>
             <label className={LABEL_CLASS} htmlFor="settings-name">
@@ -80,11 +83,16 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
           >
             {saving === "name" ? "Menyimpan…" : "Simpan nama"}
           </Button>
+          {name.trim().length < 2 ? (
+            <p role="status" className="font-mono text-[11px] uppercase tracking-wide text-terracotta">
+              Tombol aktif setelah nama berisi minimal 2 karakter.
+            </p>
+          ) : null}
         </div>
       </section>
 
-      <section className="border border-[#141824] bg-[#FAF9F6]">
-        <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+      <section className="border border-navy bg-paper">
+        <header className="border-b border-navy bg-birch px-4 py-2.5">
           <h2 className={SECTION_TITLE}>Konfigurasi harga</h2>
         </header>
         <div className="space-y-3 p-4">
@@ -101,7 +109,7 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
               onChange={(event) => setPrice(event.target.value)}
               className="w-48 font-mono tabular-nums"
             />
-            <p className="mt-1 font-mono text-[10px] uppercase leading-relaxed tracking-wide text-[#6E6A61]">
+            <p className="mt-1 font-mono text-[11px] uppercase leading-relaxed tracking-wide text-slate-muted">
               Berlaku untuk semua lapangan dan dihitung ulang di server saat booking dibuat.
             </p>
           </div>
@@ -112,11 +120,16 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
           >
             {saving === "price" ? "Menyimpan…" : "Simpan harga"}
           </Button>
+          {Number(price) <= 0 ? (
+            <p role="status" className="font-mono text-[11px] uppercase tracking-wide text-terracotta">
+              Harga harus lebih besar dari 0 sebelum dapat disimpan.
+            </p>
+          ) : null}
         </div>
       </section>
 
-      <section className="border border-[#141824] bg-[#FAF9F6]">
-        <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
+      <section className="border border-navy bg-paper">
+        <header className="border-b border-navy bg-birch px-4 py-2.5">
           <h2 className={SECTION_TITLE}>Jam operasional</h2>
         </header>
         <div className="space-y-3 p-4">
@@ -150,7 +163,7 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
               />
             </div>
           </div>
-          <p className="font-mono text-[10px] uppercase leading-relaxed tracking-wide text-[#6E6A61]">
+          <p className="font-mono text-[11px] uppercase leading-relaxed tracking-wide text-slate-muted">
             Rentang {String(hours.open).padStart(2, "0")}:00–
             {String(hours.close).padStart(2, "0")}:00 WIB saat ini. Slot di luar rentang tidak dapat
             dipesan.
@@ -162,6 +175,11 @@ export function SettingsForms({ adminName, email, hours, pricePerHour }: Setting
           >
             {saving === "hours" ? "Menyimpan…" : "Simpan jam operasional"}
           </Button>
+          {Number(openHour) >= Number(closeHour) ? (
+            <p role="status" className="font-mono text-[11px] uppercase tracking-wide text-terracotta">
+              Jam buka harus lebih awal daripada jam tutup.
+            </p>
+          ) : null}
         </div>
       </section>
     </div>

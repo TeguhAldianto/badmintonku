@@ -36,8 +36,8 @@ export function InteractiveFloorplan({ courts, activeCourtId, onSelectCourt }: I
 
   if (courts.length === 0) {
     return (
-      <div className="rounded-[2px] border border-[#141824] bg-[#FAF9F6] p-6">
-        <p className="font-mono text-xs uppercase tracking-wider text-[#6E6A61]">
+      <div className="rounded-[2px] border border-navy bg-paper p-6">
+        <p className="font-mono text-xs uppercase tracking-wider text-slate-muted">
           Memuat denah lapangan…
         </p>
       </div>
@@ -45,13 +45,13 @@ export function InteractiveFloorplan({ courts, activeCourtId, onSelectCourt }: I
   }
 
   return (
-    <div className="rounded-[2px] border border-[#141824] bg-[#FAF9F6]">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5 font-mono text-[11px]">
+    <div className="rounded-[2px] border border-navy bg-paper">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-navy bg-birch px-4 py-2.5 font-mono text-[11px]">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-[#141824]">DENAH LANTAI UTAMA (SKALA 1:100)</span>
-          <span className="hidden text-[#6E6A61] sm:inline">— KLIK LAPANGAN UNTUK FILTER</span>
+          <span className="font-bold text-navy">DENAH LANTAI UTAMA (SKALA 1:100)</span>
+          <span className="hidden text-slate-muted sm:inline">— KLIK LAPANGAN UNTUK FILTER</span>
         </div>
-        <span className="text-[#6E6A61]">DIMENSI HALL: 32.4M × 17.4M</span>
+        <span className="text-slate-muted">DIMENSI HALL: 32.4M × 17.4M</span>
       </div>
 
       <div className="architectural-grid p-3 sm:p-5">
@@ -214,42 +214,42 @@ export function InteractiveFloorplan({ courts, activeCourtId, onSelectCourt }: I
       </div>
 
       {activeCourt ? (
-        <div className="border-t border-[#141824] bg-[#EAE6DD] p-4">
-          <div className="mb-3 flex flex-col justify-between gap-3 border-b border-[#141824]/20 pb-3 sm:flex-row sm:items-center">
+        <div className="border-t border-navy bg-birch p-4">
+          <div className="mb-3 flex flex-col justify-between gap-3 border-b border-navy/20 pb-3 sm:flex-row sm:items-center">
             <div className="flex items-center gap-2.5">
               <span
                 aria-hidden="true"
                 className="inline-block h-3 w-3 rounded-[1px]"
                 style={{ backgroundColor: activeStyle.accent }}
               />
-              <span className="font-mono text-xs font-bold uppercase tracking-wide text-[#141824] sm:text-sm">
+              <span className="font-mono text-xs font-bold uppercase tracking-wide text-navy sm:text-sm">
                 {activeCourt.name}
               </span>
             </div>
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#C84B31]">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-terracotta">
               {formatCurrency(activeCourt.pricePerHour)} / jam
             </span>
           </div>
 
           <div className="grid grid-cols-1 gap-3 font-mono text-xs sm:grid-cols-3">
             <div>
-              <span className="block text-[10px] uppercase text-[#6E6A61]">Spesifikasi Matras</span>
-              <span className="mt-0.5 block font-semibold text-[#141824]">
+              <span className="block text-[11px] uppercase text-slate-muted">Spesifikasi Matras</span>
+              <span className="mt-0.5 block font-semibold text-navy">
                 {activeCourt.description ?? "Vinyl BWF 7.0 MM + sub-lantai pegas"}
               </span>
             </div>
             <div>
-              <span className="block text-[10px] uppercase text-[#6E6A61]">Pencahayaan</span>
-              <span className="mt-0.5 block font-semibold text-[#141824]">
+              <span className="block text-[11px] uppercase text-slate-muted">Pencahayaan</span>
+              <span className="mt-0.5 block font-semibold text-navy">
                 800 lux side-LED anti-silau (CRI &gt; 90)
               </span>
             </div>
             <div>
-              <span className="block text-[10px] uppercase text-[#6E6A61]">Status Unit</span>
+              <span className="block text-[11px] uppercase text-slate-muted">Status Unit</span>
               <span
                 className={cn(
                   "mt-0.5 block font-bold uppercase",
-                  activeCourt.isActive ? "text-[#1E3A8A]" : "text-[#C84B31]"
+                  activeCourt.isActive ? "text-cobalt" : "text-terracotta"
                 )}
               >
                 {activeCourt.isActive ? "Tersedia untuk reservasi" : "Dinonaktifkan admin"}

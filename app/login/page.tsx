@@ -42,12 +42,12 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Blueprint panel */}
-      <div className="relative hidden flex-col justify-between border-r border-[#141824] bg-[#141824] p-10 text-[#FAF9F6] lg:flex">
+      <div className="relative hidden flex-col justify-between border-r border-navy bg-navy p-10 text-paper lg:flex">
         <div className="architectural-grid absolute inset-0 opacity-[0.06]" aria-hidden="true" />
 
         <div className="relative">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-[#FAF9F6]/40">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[2px] border border-paper/40">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4 20H20" stroke="currentColor" strokeWidth="2" />
                 <path
@@ -63,26 +63,26 @@ export default function LoginPage() {
         </div>
 
         <div className="relative max-w-sm">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-[#C84B31]">
+          <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-terracotta">
             Akses terbatas · Lembar 00
           </span>
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight tracking-tight">
             Ruang kendali operasional arena.
           </h1>
-          <p className="mt-3 text-xs leading-relaxed text-[#EAE6DD]/70">
+          <p className="mt-3 text-xs leading-relaxed text-birch/70">
             Verifikasi pembayaran, kelola jadwal lapangan, dan pantau laporan pendapatan dari satu
             panel. Setiap tindakan tercatat pada riwayat status reservasi.
           </p>
         </div>
 
-        <dl className="relative grid grid-cols-2 gap-px border border-[#FAF9F6]/20 bg-[#FAF9F6]/20 font-mono text-[10px] uppercase tracking-wider">
-          <div className="bg-[#141824] p-3">
-            <dt className="text-[#EAE6DD]/50">Modul</dt>
-            <dd className="mt-1 text-[#FAF9F6]">Reservasi · Pembayaran</dd>
+        <dl className="relative grid grid-cols-2 gap-px border border-paper/20 bg-paper/20 font-mono text-[11px] uppercase tracking-wider">
+          <div className="bg-navy p-3">
+            <dt className="text-birch/50">Modul</dt>
+            <dd className="mt-1 text-paper">Reservasi · Pembayaran</dd>
           </div>
-          <div className="bg-[#141824] p-3">
-            <dt className="text-[#EAE6DD]/50">Autentikasi</dt>
-            <dd className="mt-1 text-[#FAF9F6]">Kredensial terenkripsi</dd>
+          <div className="bg-navy p-3">
+            <dt className="text-birch/50">Autentikasi</dt>
+            <dd className="mt-1 text-paper">Kredensial terenkripsi</dd>
           </div>
         </dl>
       </div>
@@ -92,20 +92,20 @@ export default function LoginPage() {
         <div className="mx-auto w-full max-w-sm">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#6E6A61] transition-colors hover:text-[#141824]"
+            className="inline-flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-muted transition-colors hover:text-navy"
           >
             <ArrowLeft className="h-3 w-3" strokeWidth={2} />
             Kembali ke arena
           </Link>
 
-          <div className="mt-8 border-b border-[#141824]/25 pb-4">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+          <div className="mt-8 border-b border-navy/25 pb-4">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-terracotta">
               Panel pengelola
             </span>
-            <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-[#141824]">
+            <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-navy">
               Masuk ke akun admin
             </h2>
-            <p className="mt-1.5 text-xs leading-relaxed text-[#6E6A61]">
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-muted">
               Gunakan kredensial yang diberikan pengelola sistem. Sesi tidak berlaku untuk pemesan
               tamu.
             </p>
@@ -115,7 +115,7 @@ export default function LoginPage() {
             {error ? (
               <div
                 role="alert"
-                className="rounded-[2px] border border-[#C84B31]/50 bg-[#C84B31]/10 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wide text-[#C84B31]"
+                className="rounded-[2px] border border-terracotta/50 bg-terracotta/10 px-3 py-2 font-mono text-[11px] font-semibold uppercase tracking-wide text-terracotta"
               >
                 {error}
               </div>
@@ -124,7 +124,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="email"
-                className="mb-1 block font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]"
+                className="mb-1 block font-mono text-[11px] font-bold uppercase tracking-wider text-navy"
               >
                 Email
               </label>
@@ -137,14 +137,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="nama@badmintonku.com"
-                className="w-full rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] px-3 py-2.5 font-mono text-sm text-[#141824] outline-none transition-colors placeholder:text-[#6E6A61]/60 focus:border-[#141824]"
+                className="w-full rounded-[2px] border border-navy/30 bg-paper px-3 py-2.5 font-mono text-sm text-navy outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt transition-colors placeholder:text-slate-muted/60 focus:border-navy"
               />
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="mb-1 block font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]"
+                className="mb-1 block font-mono text-[11px] font-bold uppercase tracking-wider text-navy"
               >
                 Kata sandi
               </label>
@@ -157,14 +157,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
-                className="w-full rounded-[2px] border border-[#141824]/30 bg-[#FAF9F6] px-3 py-2.5 font-mono text-sm text-[#141824] outline-none transition-colors placeholder:text-[#6E6A61]/60 focus:border-[#141824]"
+                className="w-full rounded-[2px] border border-navy/30 bg-paper px-3 py-2.5 font-mono text-sm text-navy outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt transition-colors placeholder:text-slate-muted/60 focus:border-navy"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-[2px] border border-[#141824] bg-[#141824] px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider text-[#FAF9F6] transition-colors hover:bg-[#C84B31] hover:border-[#C84B31] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-[2px] border border-navy bg-navy px-4 py-3 font-mono text-xs font-bold uppercase tracking-wider text-paper transition-colors hover:bg-terracotta hover:border-terracotta disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -177,7 +177,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 border-t border-[#141824]/15 pt-4 font-mono text-[10px] uppercase leading-relaxed tracking-wide text-[#6E6A61]">
+          <p className="mt-6 border-t border-navy/15 pt-4 font-mono text-[11px] uppercase leading-relaxed tracking-wide text-slate-muted">
             Lupa kata sandi? Hubungi pengelola sistem untuk pengaturan ulang melalui basis data.
           </p>
         </div>

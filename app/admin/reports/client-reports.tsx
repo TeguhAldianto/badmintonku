@@ -19,36 +19,36 @@ interface ReportsData {
 
 export default function ClientReportsPage({ data }: { data: ReportsData }) {
   const summary = [
-    { label: "Total booking", value: data.totalBookings.toString(), accent: "border-[#141824]" },
+    { label: "Total booking", value: data.totalBookings.toString(), accent: "border-navy" },
     {
       label: "Pendapatan bulan ini",
       value: formatCurrency(data.monthlyRevenue),
-      accent: "border-[#1E3A8A]",
+      accent: "border-cobalt",
     },
     {
       label: "Pendapatan tahun ini",
       value: formatCurrency(data.yearlyRevenue),
-      accent: "border-[#1E3A8A]",
+      accent: "border-cobalt",
     },
     {
       label: "Total pendapatan",
       value: formatCurrency(data.totalRevenue),
-      accent: "border-[#C84B31]",
+      accent: "border-terracotta",
     },
   ];
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#141824] pb-3">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-navy pb-3">
         <div>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-[#C84B31]">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.22em] text-terracotta">
             Modul 07
           </span>
           <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-2xl">
             Laporan &amp; Analitik
           </h1>
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+        <span className="font-mono text-[11px] uppercase tracking-wider text-slate-muted">
           Pendapatan dihitung dari booking dikonfirmasi &amp; selesai
         </span>
       </div>
@@ -57,12 +57,12 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
         {summary.map((item) => (
           <div
             key={item.label}
-            className={`border border-[#141824]/25 border-l-[3px] ${item.accent} bg-[#FAF9F6] p-4`}
+            className={`border border-navy/25 border-l-[3px] ${item.accent} bg-paper p-4`}
           >
-            <h2 className="font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+            <h2 className="font-mono text-[11px] uppercase tracking-wider text-slate-muted">
               {item.label}
             </h2>
-            <p className="mt-1.5 font-mono text-lg font-bold tabular-nums text-[#141824]">
+            <p className="mt-1.5 font-mono text-lg font-bold tabular-nums text-navy">
               {item.value}
             </p>
           </div>
@@ -72,15 +72,15 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
       <Chart data={data.busiestHours} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="border border-[#141824] bg-[#FAF9F6]">
-          <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
-            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+        <section className="border border-navy bg-paper">
+          <header className="border-b border-navy bg-birch px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-navy">
               Booking per lapangan
             </h2>
           </header>
-          <ul className="divide-y divide-[#141824]/15">
+          <ul className="divide-y divide-navy/15">
             {data.bookingsByCourt.length === 0 ? (
-              <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              <li className="px-4 py-8 text-center font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                 Belum ada data
               </li>
             ) : (
@@ -89,12 +89,12 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
                   key={court.court}
                   className="flex items-center justify-between gap-3 px-4 py-2.5"
                 >
-                  <span className="text-xs font-semibold text-[#141824]">{court.court}</span>
+                  <span className="text-xs font-semibold text-navy">{court.court}</span>
                   <span className="text-right">
-                    <span className="block font-mono text-[11px] font-bold tabular-nums text-[#141824]">
+                    <span className="block font-mono text-[11px] font-bold tabular-nums text-navy">
                       {court.count} booking
                     </span>
-                    <span className="block font-mono text-[10px] tabular-nums text-[#6E6A61]">
+                    <span className="block font-mono text-[11px] tabular-nums text-slate-muted">
                       {formatCurrency(court.revenue)}
                     </span>
                   </span>
@@ -104,15 +104,15 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
           </ul>
         </section>
 
-        <section className="border border-[#141824] bg-[#FAF9F6]">
-          <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
-            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+        <section className="border border-navy bg-paper">
+          <header className="border-b border-navy bg-birch px-4 py-2.5">
+            <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-navy">
               Booking per status
             </h2>
           </header>
-          <ul className="divide-y divide-[#141824]/15">
+          <ul className="divide-y divide-navy/15">
             {data.bookingsByStatus.length === 0 ? (
-              <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+              <li className="px-4 py-8 text-center font-mono text-[11px] uppercase tracking-wider text-slate-muted">
                 Belum ada data
               </li>
             ) : (
@@ -122,7 +122,7 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
                   className="flex items-center justify-between gap-3 px-4 py-2.5"
                 >
                   <StatusBadge status={status.status} />
-                  <span className="font-mono text-[11px] font-bold tabular-nums text-[#141824]">
+                  <span className="font-mono text-[11px] font-bold tabular-nums text-navy">
                     {status.count}
                   </span>
                 </li>
@@ -132,24 +132,24 @@ export default function ClientReportsPage({ data }: { data: ReportsData }) {
         </section>
       </div>
 
-      <section className="border border-[#141824] bg-[#FAF9F6]">
-        <header className="border-b border-[#141824] bg-[#EAE6DD] px-4 py-2.5">
-          <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#141824]">
+      <section className="border border-navy bg-paper">
+        <header className="border-b border-navy bg-birch px-4 py-2.5">
+          <h2 className="font-mono text-[11px] font-bold uppercase tracking-wider text-navy">
             Jam tersibuk (5 teratas)
           </h2>
         </header>
-        <ul className="divide-y divide-[#141824]/15">
+        <ul className="divide-y divide-navy/15">
           {data.busiestHours.length === 0 ? (
-            <li className="px-4 py-8 text-center font-mono text-[10px] uppercase tracking-wider text-[#6E6A61]">
+            <li className="px-4 py-8 text-center font-mono text-[11px] uppercase tracking-wider text-slate-muted">
               Belum ada data booking
             </li>
           ) : (
             data.busiestHours.map((hour) => (
               <li key={hour.hour} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <span className="font-mono text-[11px] font-semibold tabular-nums text-[#141824]">
+                <span className="font-mono text-[11px] font-semibold tabular-nums text-navy">
                   {hour.hour}
                 </span>
-                <span className="font-mono text-[11px] font-bold tabular-nums text-[#1E3A8A]">
+                <span className="font-mono text-[11px] font-bold tabular-nums text-cobalt">
                   {hour.count} booking
                 </span>
               </li>
