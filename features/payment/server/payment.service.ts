@@ -1,8 +1,12 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { BookingStatus, PaymentStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
-import { assertBookingStatusTransition, normalizePhone } from "@/features/booking/server/booking.service";
+import {
+  assertBookingStatusTransition,
+  normalizePhone,
+  updateWithStatusGuard,
+} from "@/features/booking/server/booking.service";
 import {
   notifyPaymentApproved,
   notifyPaymentRejected,
@@ -19,6 +23,7 @@ import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE,
   PAYMENT_INSTRUCTIONS,
+  PAYMENT_METHOD_META,
   PAYMENT_METHODS,
   isPaymentMethod,
   type PaymentMethod,
@@ -77,6 +82,9 @@ export async function uploadPaymentProof({
   mimeType,
   method,
 }: PaymentProofUpload) {
+  if (!PAYMENT_METHOD_META[method].requiresProof) {
+    throw new ValidationError("Metode pembayaran ini tidak memerlukan unggah bukti.");
+  }
   if (!(ALLOWED_MIME_TYPES as readonly string[]).includes(mimeType)) {
     throw new ValidationError("Format file tidak didukung. Gunakan JPG, PNG, atau WebP.");
   }
@@ -104,43 +112,68 @@ export async function uploadPaymentProof({
   if (booking.status !== BookingStatus.PENDING_PAYMENT) {
     throw new ConflictError(`Tidak dapat upload bukti pada status ${booking.status}`);
   }
+  if (booking.expiresAt.getTime() < Date.now()) {
+    throw new ConflictError("Waktu pembayaran sudah habis");
+  }
 
   const payment = booking.payment;
   if (!payment) throw new NotFoundError("Data pembayaran tidak ditemukan");
   if (payment.status !== PaymentStatus.UNPAID) {
     throw new ConflictError(`Tidak dapat upload bukti pada status ${payment.status}`);
   }
+  if (payment.midtransOrderId) {
+    throw new ConflictError(
+      "Transaksi Midtrans sudah dibuat. Selesaikan pembayaran Midtrans atau tunggu kedaluwarsa."
+    );
+  }
 
   const uploadsDir = path.join(process.cwd(), "public", "uploads", "payments");
   await mkdir(uploadsDir, { recursive: true });
 
   const fileName = `${bookingId}-${Date.now()}.${imageType}`;
-  await writeFile(path.join(uploadsDir, fileName), file);
+  const filePath = path.join(uploadsDir, fileName);
+  await writeFile(filePath, file);
   const proofUrl = `/uploads/payments/${fileName}`;
 
-  const updatedPayment = await prisma.$transaction(async (tx) => {
-    const updated = await tx.payment.update({
-      where: { id: payment.id },
-      data: { proofUrl, status: PaymentStatus.VERIFYING, method },
-    });
-
-    await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: BookingStatus.WAITING_VERIFICATION,
-        statusHistory: {
-          create: {
-            oldStatus: BookingStatus.PENDING_PAYMENT,
-            newStatus: BookingStatus.WAITING_VERIFICATION,
-            changedBy: "USER",
-            notes: `Upload bukti pembayaran via ${method}`,
-          },
+  let updatedPayment;
+  try {
+    updatedPayment = await prisma.$transaction(async (tx) => {
+      const paymentUpdate = await tx.payment.updateMany({
+        where: {
+          id: payment.id,
+          status: PaymentStatus.UNPAID,
+          midtransOrderId: null,
         },
-      },
-    });
+        data: { proofUrl, status: PaymentStatus.VERIFYING, method },
+      });
+      if (paymentUpdate.count === 0) {
+        throw new ConflictError("Status pembayaran sudah berubah. Muat ulang lalu coba lagi.");
+      }
 
-    return updated;
-  });
+      const bookingUpdate = await tx.booking.updateMany({
+        where: { id: bookingId, status: BookingStatus.PENDING_PAYMENT },
+        data: { status: BookingStatus.WAITING_VERIFICATION },
+      });
+      if (bookingUpdate.count === 0) {
+        throw new ConflictError("Status booking sudah berubah. Muat ulang lalu coba lagi.");
+      }
+
+      await tx.bookingStatusHistory.create({
+        data: {
+          bookingId,
+          oldStatus: BookingStatus.PENDING_PAYMENT,
+          newStatus: BookingStatus.WAITING_VERIFICATION,
+          changedBy: "USER",
+          notes: `Upload bukti pembayaran via ${method}`,
+        },
+      });
+
+      return tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+    });
+  } catch (error) {
+    await unlink(filePath).catch(() => undefined);
+    throw error;
+  }
 
   try {
     await notifyPaymentSubmitted({
@@ -156,6 +189,70 @@ export async function uploadPaymentProof({
   }
 
   return updatedPayment;
+}
+
+export interface SelectPaymentMethodInput {
+  bookingId: string;
+  userPhone: string;
+  method: PaymentMethod;
+}
+
+/**
+ * Stores the guest's chosen settlement method before proof/Midtrans.
+ * DIRECT is the only method that can be confirmed by admin without proof.
+ */
+export async function selectPaymentMethod({
+  bookingId,
+  userPhone,
+  method,
+}: SelectPaymentMethodInput) {
+  if (!isPaymentMethod(method)) {
+    throw new ValidationError("Metode pembayaran tidak valid");
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+
+  if (!booking) throw new NotFoundError("Booking tidak ditemukan");
+  if (booking.userPhone !== normalizePhone(userPhone)) {
+    throw new ForbiddenError("Tidak memiliki akses ke booking ini");
+  }
+  if (booking.status !== BookingStatus.PENDING_PAYMENT) {
+    throw new ConflictError(`Tidak dapat mengubah metode pada status ${booking.status}`);
+  }
+  if (booking.expiresAt.getTime() < Date.now()) {
+    throw new ConflictError("Waktu pembayaran sudah habis");
+  }
+
+  const payment = booking.payment;
+  if (!payment) throw new NotFoundError("Data pembayaran tidak ditemukan");
+  if (payment.status !== PaymentStatus.UNPAID) {
+    throw new ConflictError("Pembayaran sudah diproses");
+  }
+  if (payment.midtransOrderId) {
+    throw new ConflictError("Transaksi Midtrans sudah dibuat; metode tidak dapat diubah");
+  }
+  if (payment.proofUrl) {
+    throw new ConflictError("Bukti pembayaran sudah diunggah; metode tidak dapat diubah");
+  }
+
+  const updated = await prisma.payment.updateMany({
+    where: {
+      id: payment.id,
+      status: PaymentStatus.UNPAID,
+      midtransOrderId: null,
+      proofUrl: null,
+    },
+    data: { method },
+  });
+
+  if (updated.count === 0) {
+    throw new ConflictError("Status pembayaran sudah berubah. Muat ulang lalu coba lagi.");
+  }
+
+  return prisma.payment.findUnique({ where: { id: payment.id } });
 }
 
 export interface AdminPaymentAction {
@@ -200,31 +297,37 @@ export async function processPaymentAdmin({
   assertBookingStatusTransition(payment.booking.status, nextBookingStatus);
 
   await prisma.$transaction(async (tx) => {
-    await tx.payment.update({
-      where: { id: paymentId },
-      data:
-        action === "APPROVE"
-          ? { status: PaymentStatus.PAID, verifiedAt: new Date(), rejectionReason: null }
-          : { status: PaymentStatus.REJECTED, rejectionReason },
-    });
+    await updateWithStatusGuard(
+      tx.payment.update({
+        where: { id: paymentId, status: PaymentStatus.VERIFYING },
+        data:
+          action === "APPROVE"
+            ? { status: PaymentStatus.PAID, verifiedAt: new Date(), rejectionReason: null }
+            : { status: PaymentStatus.REJECTED, rejectionReason },
+      }),
+      "Pembayaran sudah diproses oleh admin lain. Muat ulang lalu coba lagi."
+    );
 
-    await tx.booking.update({
-      where: { id: payment.bookingId },
-      data: {
-        status: nextBookingStatus,
-        statusHistory: {
-          create: {
-            oldStatus: payment.booking.status,
-            newStatus: nextBookingStatus,
-            changedBy: adminId,
-            notes:
-              action === "APPROVE"
-                ? "Pembayaran diverifikasi oleh admin"
-                : `Pembayaran ditolak: ${rejectionReason}`,
+    await updateWithStatusGuard(
+      tx.booking.update({
+        where: { id: payment.bookingId, status: BookingStatus.WAITING_VERIFICATION },
+        data: {
+          status: nextBookingStatus,
+          statusHistory: {
+            create: {
+              oldStatus: payment.booking.status,
+              newStatus: nextBookingStatus,
+              changedBy: adminId,
+              notes:
+                action === "APPROVE"
+                  ? "Pembayaran diverifikasi oleh admin"
+                  : `Pembayaran ditolak: ${rejectionReason}`,
+            },
           },
         },
-      },
-    });
+      }),
+      "Status booking sudah berubah. Muat ulang lalu coba lagi."
+    );
   });
 
   const notification = {
@@ -287,6 +390,12 @@ export async function createMidtransPayment(bookingId: string, userPhone: string
   if (booking.payment && booking.payment.status !== PaymentStatus.UNPAID) {
     throw new ConflictError("Pembayaran sudah diproses");
   }
+  if (booking.payment?.method === "DIRECT") {
+    throw new ConflictError("Booking ini memilih Bayar di Tempat. Ubah metode jika ingin membayar via Midtrans.");
+  }
+  if (booking.payment?.proofUrl) {
+    throw new ConflictError("Bukti transfer sudah diunggah. Batalkan atau tunggu verifikasi admin.");
+  }
 
   const token = await createSnapToken({
     id: booking.id,
@@ -296,10 +405,13 @@ export async function createMidtransPayment(bookingId: string, userPhone: string
   });
 
   if (booking.payment) {
-    await prisma.payment.update({
-      where: { id: booking.payment.id },
-      data: { midtransOrderId: booking.id },
+    const updated = await prisma.payment.updateMany({
+      where: { id: booking.payment.id, status: PaymentStatus.UNPAID },
+      data: { midtransOrderId: booking.id, method: "QRIS" },
     });
+    if (updated.count === 0) {
+      throw new ConflictError("Status pembayaran sudah berubah. Muat ulang lalu coba lagi.");
+    }
   }
 
   return { token, redirectUrl: getSnapRedirectUrl(token) };

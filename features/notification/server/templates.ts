@@ -7,12 +7,15 @@ export const NOTIFICATION_TEMPLATES = {
     paymentInstructions: string;
   }) =>
     `🏸 *Booking Berhasil!*\n\n` +
-    `Kode: ${data.bookingCode}\n` +
+    `Kode booking: ${data.bookingCode}\n` +
     `Lapangan: ${data.courtName}\n` +
     `Tanggal: ${data.date}\n` +
     `Jam: ${data.time}\n\n` +
-    `Silakan lakukan pembayaran:\n${data.paymentInstructions}\n\n` +
-    `Bukti transfer bisa diupload di aplikasi.\n` +
+    `Simpan pesan ini. Untuk membuka tiket:\n` +
+    `1. Buka halaman *Tiket Saya*\n` +
+    `2. Tempel kode di atas pada kolom *Cari kode booking*\n` +
+    `3. Tekan *Tambahkan*\n\n` +
+    `Cara bayar:\n${data.paymentInstructions}\n\n` +
     `Terima kasih! - OMAH GUYUB`,
 
   PAYMENT_SUBMITTED: (data: { bookingCode: string; courtName: string; date: string; time: string }) =>
@@ -76,6 +79,13 @@ export const NOTIFICATION_TEMPLATES = {
     `Waktu pembayaran telah habis (1 jam).\n` +
     `Slot telah dibuka untuk user lain.\n` +
     `Silakan buat booking baru jika masih ingin bermain.\n` +
+    `- OMAH GUYUB`,
+
+  LOOKUP_OTP: (data: { code: string; minutes: number }) =>
+    `🔐 *Kode Verifikasi Tiket*\n\n` +
+    `Kode: *${data.code}*\n` +
+    `Berlaku ${data.minutes} menit. Jangan bagikan kode ini kepada siapa pun.\n\n` +
+    `Jika Anda tidak meminta kode ini, abaikan pesan ini.\n` +
     `- OMAH GUYUB`,
 } as const;
 

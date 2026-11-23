@@ -203,8 +203,7 @@ export interface ListPaymentsInput {
   pageSize?: number;
 }
 
-export async function listPayments({ status, page = 1, pageSize = 20 }: ListPaymentsInput) {
-  const where: Prisma.PaymentWhereInput = {};
+export async function listPayments({ status, page = 1, pageSize = 20 }: ListPaymentsInput) {  const where: Prisma.PaymentWhereInput = {};
   if (status && status !== "all") {
     where.status = status as PaymentStatus;
   }
@@ -236,4 +235,13 @@ export async function listPayments({ status, page = 1, pageSize = 20 }: ListPaym
   ]);
 
   return { payments, meta: { total, page: safePage, pageSize: safePageSize } };
+}
+
+/** Totals by payment status, independent of pagination (so the queue badge is honest). */
+export async function getPaymentStatusCounts(): Promise<Record<string, number>> {
+  const grouped = await prisma.payment.groupBy({ by: ["status"], _count: { id: true } });
+  return grouped.reduce<Record<string, number>>((accumulator, row) => {
+    accumulator[row.status] = row._count.id;
+    return accumulator;
+  }, {});
 }

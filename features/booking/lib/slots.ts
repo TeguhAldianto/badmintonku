@@ -9,11 +9,11 @@ export const ACTIVE_BOOKING_STATUSES = [
 ] as const;
 
 export const SLOT_STATUS_CONFIG: Record<SlotStatus, { label: string; className: string }> = {
-  AVAILABLE: { label: "Tersedia", className: "bg-[#FAF9F6] text-[#141824] border-[#141824]/25" },
-  SELECTED: { label: "Dipilih", className: "bg-[#C84B31] text-[#FAF9F6] border-[#141824]" },
-  BOOKED: { label: "Terisi", className: "slot-occupied text-[#6E6A61] border-[#141824]/25" },
-  PENDING: { label: "Pending", className: "bg-[#C84B31]/10 text-[#C84B31] border-[#C84B31]/40" },
-  BLOCKED: { label: "Diblokir", className: "slot-occupied text-[#6E6A61] border-[#141824]/20" },
+  AVAILABLE: { label: "Tersedia", className: "bg-paper text-navy border-navy/25" },
+  SELECTED: { label: "Dipilih", className: "bg-terracotta text-paper border-navy" },
+  BOOKED: { label: "Terisi", className: "slot-occupied text-slate-muted border-navy/25" },
+  PENDING: { label: "Menunggu", className: "bg-terracotta/10 text-terracotta border-terracotta/40" },
+  BLOCKED: { label: "Diblokir", className: "slot-occupied text-slate-muted border-navy/20" },
 };
 
 /** Validates and normalizes an `operational_hours` config value. */

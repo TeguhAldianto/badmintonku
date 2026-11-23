@@ -44,6 +44,18 @@ export function addLocalTicket(code: string): LocalTicket[] {
   return next;
 }
 
+/** Adds many codes with one storage write and one change event. */
+export function addLocalTickets(codes: string[]): LocalTicket[] {
+  const unique = new Set(codes);
+  const createdAt = new Date().toISOString();
+  const next = [
+    ...Array.from(unique, (code) => ({ code, createdAt })),
+    ...readLocalTickets().filter((ticket) => !unique.has(ticket.code)),
+  ];
+  persist(next);
+  return next;
+}
+
 export function removeLocalTicket(code: string): LocalTicket[] {
   const next = readLocalTickets().filter((ticket) => ticket.code !== code);
   persist(next);

@@ -6,6 +6,14 @@ export { NOTIFICATION_TEMPLATES };
 
 const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || "https://api.fonnte.com/send";
 
+/**
+ * The booking is created before a payment method is chosen, so the message must
+ * not hardcode bank details (that would mislead QRIS / pay-at-venue guests).
+ */
+const DEFAULT_PAYMENT_INSTRUCTIONS =
+  "Buka halaman Tiket Saya, lalu pilih Transfer Bank, QRIS, atau Bayar di Tempat. " +
+  "Batas waktu pembayaran 1 jam sejak booking dibuat.";
+
 export interface NotificationPayload {
   target: string;
   message: string;
@@ -132,7 +140,9 @@ interface BookingNotificationBase {
 
 function bookingContext(booking: BookingNotificationBase) {
   return {
-    bookingCode: booking.id.slice(0, 8).toUpperCase(),
+    // The full booking ID is the only code the recovery form accepts, so send it verbatim.
+    // (Truncating it made the WhatsApp code unusable.)
+    bookingCode: booking.id,
     courtName: booking.courtName,
     date: formatDateIndo(booking.date),
     time: `${booking.startTime.toString().padStart(2, "0")}:00 – ${booking.endTime
@@ -148,7 +158,7 @@ export async function notifyBookingCreated(
     target: booking.userPhone,
     message: NOTIFICATION_TEMPLATES.BOOKING_CREATED({
       ...bookingContext(booking),
-       paymentInstructions: booking.paymentInstructions ?? "Transfer ke BCA 1234567890 a.n. OMAH GUYUB",
+      paymentInstructions: booking.paymentInstructions ?? DEFAULT_PAYMENT_INSTRUCTIONS,
     }),
     type: "BOOKING_CREATED",
     referenceId: booking.id,
@@ -187,6 +197,20 @@ export async function notifyBookingExpired(booking: BookingNotificationBase) {
     target: booking.userPhone,
     message: NOTIFICATION_TEMPLATES.BOOKING_EXPIRED(bookingContext(booking)),
     type: "BOOKING_EXPIRED",
+    referenceId: booking.id,
+  });
+}
+
+export async function notifyBookingCancelled(
+  booking: BookingNotificationBase & { cancelledBy: string }
+) {
+  await sendWhatsAppNotification({
+    target: booking.userPhone,
+    message: NOTIFICATION_TEMPLATES.BOOKING_CANCELLED({
+      ...bookingContext(booking),
+      cancelledBy: booking.cancelledBy,
+    }),
+    type: "BOOKING_CANCELLED",
     referenceId: booking.id,
   });
 }
