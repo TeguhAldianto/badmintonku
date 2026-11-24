@@ -19,31 +19,64 @@ export interface NotificationPayload {
   message: string;
   type: NotificationType;
   referenceId: string;
+  /** Prevents the same event from being sent twice (e.g. BOOKING_CREATED:bookingId). */
+  idempotencyKey?: string;
 }
 
 export interface NotificationResult {
   success: boolean;
   messageId?: string;
   error?: string;
+  skipped?: boolean;
 }
 
-async function logNotification(data: {
-  target: string;
-  message: string;
-  type: string;
-  referenceId: string;
-  status: "SENT" | "FAILED" | "ERROR";
-  errorMessage?: string;
-  providerResponse?: string;
-}) {
+async function saveNotificationLog(
+  data: {
+    target: string;
+    message: string;
+    type: string;
+    referenceId: string;
+    idempotencyKey?: string;
+    status: "SENT" | "FAILED" | "ERROR";
+    errorMessage?: string;
+    providerResponse?: string;
+  },
+  existingLogId?: number
+) {
   try {
+    if (existingLogId) {
+      await prisma.notificationLog.update({ where: { id: existingLogId }, data });
+      return;
+    }
+    if (data.idempotencyKey) {
+      const existing = await prisma.notificationLog.findUnique({
+        where: { idempotencyKey: data.idempotencyKey },
+      });
+      if (existing) {
+        await prisma.notificationLog.update({ where: { id: existing.id }, data });
+        return;
+      }
+    }
     await prisma.notificationLog.create({ data });
   } catch (logError) {
     console.error("Failed to log notification:", logError);
   }
 }
 
-export async function sendWhatsAppNotification(payload: NotificationPayload): Promise<NotificationResult> {
+export async function sendWhatsAppNotification(
+  payload: NotificationPayload
+): Promise<NotificationResult> {
+  let existingLogId: number | undefined;
+  if (payload.idempotencyKey) {
+    const existing = await prisma.notificationLog.findUnique({
+      where: { idempotencyKey: payload.idempotencyKey },
+    });
+    if (existing?.status === "SENT") {
+      return { success: true, skipped: true };
+    }
+    existingLogId = existing?.id;
+  }
+
   const apiKey = process.env.WHATSAPP_API_KEY || process.env.FONNTE_API_KEY;
 
   if (!apiKey) {
@@ -67,25 +100,22 @@ export async function sendWhatsAppNotification(payload: NotificationPayload): Pr
     const data = (await response.json()) as { status?: boolean; messageId?: string; reason?: string };
 
     if (response.ok && data.status === true) {
-      await logNotification({
-        ...payload,
-        status: "SENT",
-        providerResponse: JSON.stringify(data),
-      });
+      await saveNotificationLog(
+        { ...payload, status: "SENT", providerResponse: JSON.stringify(data) },
+        existingLogId
+      );
       return { success: true, messageId: data.messageId };
     }
 
     const errorMsg = data.reason || "Unknown Fonnte error";
-    await logNotification({
-      ...payload,
-      status: "FAILED",
-      errorMessage: errorMsg,
-      providerResponse: JSON.stringify(data),
-    });
+    await saveNotificationLog(
+      { ...payload, status: "FAILED", errorMessage: errorMsg, providerResponse: JSON.stringify(data) },
+      existingLogId
+    );
     return { success: false, error: errorMsg };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Network error";
-    await logNotification({ ...payload, status: "ERROR", errorMessage: errorMsg });
+    await saveNotificationLog({ ...payload, status: "ERROR", errorMessage: errorMsg }, existingLogId);
     return { success: false, error: errorMsg };
   }
 }
@@ -107,14 +137,14 @@ export async function retryFailedNotifications(maxRetries = 3) {
         message: notification.message,
         type: notification.type as NotificationType,
         referenceId: notification.referenceId,
+        idempotencyKey: notification.idempotencyKey ?? undefined,
       });
 
       await prisma.notificationLog.update({
         where: { id: notification.id },
         data: {
           retryCount: { increment: 1 },
-          status: result.success ? "SENT" : notification.status,
-          errorMessage: result.error,
+          ...(result.success ? { status: "SENT", errorMessage: null } : { errorMessage: result.error }),
         },
       });
     } catch (error) {
@@ -162,6 +192,7 @@ export async function notifyBookingCreated(
     }),
     type: "BOOKING_CREATED",
     referenceId: booking.id,
+    idempotencyKey: `BOOKING_CREATED:${booking.id}`,
   });
 }
 
@@ -171,6 +202,7 @@ export async function notifyPaymentSubmitted(booking: BookingNotificationBase) {
     message: NOTIFICATION_TEMPLATES.PAYMENT_SUBMITTED(bookingContext(booking)),
     type: "PAYMENT_SUBMITTED",
     referenceId: booking.id,
+    idempotencyKey: `PAYMENT_SUBMITTED:${booking.id}`,
   });
 }
 
@@ -180,6 +212,7 @@ export async function notifyPaymentApproved(booking: BookingNotificationBase) {
     message: NOTIFICATION_TEMPLATES.PAYMENT_APPROVED(bookingContext(booking)),
     type: "PAYMENT_APPROVED",
     referenceId: booking.id,
+    idempotencyKey: `PAYMENT_APPROVED:${booking.id}`,
   });
 }
 
@@ -189,6 +222,7 @@ export async function notifyPaymentRejected(booking: BookingNotificationBase & {
     message: NOTIFICATION_TEMPLATES.PAYMENT_REJECTED({ ...bookingContext(booking), reason: booking.reason }),
     type: "PAYMENT_REJECTED",
     referenceId: booking.id,
+    idempotencyKey: `PAYMENT_REJECTED:${booking.id}`,
   });
 }
 
@@ -198,6 +232,7 @@ export async function notifyBookingExpired(booking: BookingNotificationBase) {
     message: NOTIFICATION_TEMPLATES.BOOKING_EXPIRED(bookingContext(booking)),
     type: "BOOKING_EXPIRED",
     referenceId: booking.id,
+    idempotencyKey: `BOOKING_EXPIRED:${booking.id}`,
   });
 }
 
@@ -212,5 +247,6 @@ export async function notifyBookingCancelled(
     }),
     type: "BOOKING_CANCELLED",
     referenceId: booking.id,
+    idempotencyKey: `BOOKING_CANCELLED:${booking.id}`,
   });
 }

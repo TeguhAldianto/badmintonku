@@ -30,9 +30,8 @@ interface BookingData {
   payment: {
     status: string;
     method: string | null;
-    proofUrl: string | null;
     rejectionReason: string | null;
-    midtransOrderId: string | null;
+    hasMidtransTransaction: boolean;
   } | null;
 }
 
@@ -722,7 +721,7 @@ export default function BookingConfirmationPage({ params }: { params: Promise<{ 
               </div>
             ) : null}
 
-            {booking.payment?.midtransOrderId ? (
+            {booking.payment?.hasMidtransTransaction ? (
               <button
                 type="button"
                 onClick={() => syncPaymentStatus(phone)}

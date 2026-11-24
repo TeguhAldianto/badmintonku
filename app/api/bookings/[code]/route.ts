@@ -33,9 +33,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
         ? {
             status: booking.payment.status,
             method: booking.payment.method,
-            proofUrl: booking.payment.proofUrl,
             rejectionReason: booking.payment.rejectionReason,
-            midtransOrderId: booking.payment.midtransOrderId,
+            hasMidtransTransaction: Boolean(booking.payment.midtransOrderId),
           }
         : null,
     });

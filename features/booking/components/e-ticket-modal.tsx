@@ -150,6 +150,9 @@ export function ETicketModal({
                       Salin
                     </button>
                   </div>
+                  <p className="mt-2 font-mono text-[11px] uppercase leading-relaxed tracking-wide text-terracotta">
+                    Jangan bagikan kode booking/e-tiket kepada orang yang tidak dipercaya.
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2 print:hidden">

@@ -165,6 +165,7 @@ model NotificationLog {
   message          String   @db.Text
   type             String
   referenceId      String
+  idempotencyKey   String?  @unique
   status           String   // SENT, FAILED, ERROR
   errorMessage     String?  @db.Text
   providerResponse String?  @db.Text
