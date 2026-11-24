@@ -6,13 +6,13 @@
 
 ## 🚀 Tech Stack
 
-- **Framework:** Next.js 16.3+ (App Router, React 19, Turbopack)
-- **Database & ORM:** MySQL + Prisma 6 (dengan transaksi serializable & raw row locking)
+- **Framework:** Next.js 16 (App Router, React 19, Turbopack)
+- **Database & ORM:** MySQL + Prisma 6 (dengan transaksi serializable & row locking)
 - **Autentikasi:** NextAuth v5 (Beta)
 - **Styling:** Tailwind CSS v4 + Radix UI
 - **Integrasi Pembayaran:** Midtrans Snap API & Webhook
 - **Notifikasi:** Fonnte WhatsApp Gateway API
-- **Testing:** Vitest (61+ pengujian terintegrasi)
+- **Testing:** Vitest (71 pengujian)
 
 ---
 
@@ -41,8 +41,8 @@ npm run dev            # Menjalankan development server (Next.js)
 npm run build          # Membuat build produksi
 npm run start          # Menjalankan server produksi
 npm run lint           # Menjalankan ESLint
+npm run test           # Menjalankan rangkaian unit & integration test (Vitest)
 npx tsc --noEmit       # Memeriksa tipe TypeScript
-npx vitest run         # Menjalankan rangkaian unit & integration test
 npx prisma db seed     # Melakukan seeding data awal database
 ```
 
@@ -50,18 +50,33 @@ npx prisma db seed     # Melakukan seeding data awal database
 
 ## ⚙️ Konfigurasi Environment (`.env`)
 
-Buat file `.env` di root direktori dengan contoh konfigurasi berikut:
+Salin `.env.example` menjadi `.env`, lalu isi nilai yang diperlukan:
+
+```bash
+cp .env.example .env
+```
+
+Variabel penting:
 
 ```env
 DATABASE_URL="mysql://user:password@localhost:3306/omah_guyub"
 AUTH_SECRET="your-nextauth-secret-key"
+
+APP_URL="http://localhost:3000"
+APP_TIME_ZONE="Asia/Jakarta"
+
+# Midtrans (server + browser Snap)
 MIDTRANS_SERVER_KEY="your-midtrans-server-key"
 MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
 NEXT_PUBLIC_MIDTRANS_CLIENT_KEY="your-midtrans-client-key"
 MIDTRANS_IS_PRODUCTION="false"
-FONNTE_API_KEY="your-fonnte-whatsapp-api-key"
+
+# WhatsApp Fonnte
+WHATSAPP_API_KEY="your-fonnte-whatsapp-api-key"
+# atau FONNTE_API_KEY="..."
+
+# Cron: GET /api/cron/expire-bookings dengan Authorization: Bearer <CRON_SECRET>
 CRON_SECRET="your-cron-secret-key"
-APP_TIME_ZONE="Asia/Jakarta"
 ```
 
 ---
